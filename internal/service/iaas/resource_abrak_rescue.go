@@ -41,7 +41,7 @@ func ResourceAbrakRescue() *schema.Resource {
 	}
 }
 
-func resourceAbrakRescueCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakRescueCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	var err error
 
@@ -77,7 +77,7 @@ func resourceAbrakRescueCreate(ctx context.Context, data *schema.ResourceData, m
 	return errors
 }
 
-func resourceAbrakRescueUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakRescueUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	if data.HasChange("enable") {
 		return resourceAbrakRescueCreate(ctx, data, meta)
 	}

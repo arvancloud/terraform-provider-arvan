@@ -1,6 +1,7 @@
 package iaas
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api"
@@ -80,51 +81,39 @@ type Image struct {
 	requester *api.Requester
 }
 
-func NewImage(requester *api.Requester) *Image {
+func NewImage(ctx context.Context) *Image {
 	return &Image{
-		requester: requester,
+		requester: ctx.Value(api.RequesterContext).(*api.Requester),
 	}
 }
 
-func (i *Image) List(region, imageType string) (interface{}, error) {
+func (i *Image) List(region, imageType string) (any, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/images", ECCEndPoint, Version, region)
 
-	data, err := i.requester.DoRequestWithQuery("GET", endpoint, nil, map[string]string{
+	data, err := i.requester.List(endpoint, map[string]string{
 		"type": imageType,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(data, &response)
-	if err != nil {
-		return nil, err
-	}
-
-	dataBytes, err := json.Marshal(response.Data)
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
 	if imageType == ImageTypeDistributions {
-		var imageDetails []ImageDistributionDetails
-		err = json.Unmarshal(dataBytes, &imageDetails)
-		if err != nil {
-			return nil, err
-		}
-		return imageDetails, nil
+		var details []ImageDistributionDetails
+		err = json.Unmarshal(marshal, &details)
+		return details, err
 	}
 
-	var imageDetails []ImageServerDetails
-	err = json.Unmarshal(dataBytes, &imageDetails)
-	if err != nil {
-		return nil, err
-	}
-	return imageDetails, nil
+	var details []ImageServerDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }
 
-func (i *Image) FindImageId(region, name, imageType string) (*string, error) {
+func (i *Image) Find(region, name, imageType string) (*string, error) {
 	images, err := i.List(region, imageType)
 	if err != nil {
 		return nil, err
@@ -162,27 +151,17 @@ func (i *Image) FindImageId(region, name, imageType string) (*string, error) {
 func (i *Image) ListMarketPlace(region string) ([]MarketPlaceDetail, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/images/marketplace", ECCEndPoint, Version, region)
 
-	data, err := i.requester.DoRequest("GET", endpoint, nil)
+	data, err := i.requester.List(endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(data, &response)
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var marketPlaces []MarketPlaceDetail
-	err = json.Unmarshal(dataBytes, &marketPlaces)
-	if err != nil {
-		return nil, err
-	}
-
-	return marketPlaces, nil
+	var details []MarketPlaceDetail
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }

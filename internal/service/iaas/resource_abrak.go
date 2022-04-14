@@ -125,7 +125,7 @@ func ResourceAbrak() *schema.Resource {
 	}
 }
 
-func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 	region, ok := data.Get("region").(string)
@@ -159,7 +159,7 @@ func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta in
 	if v, ok := data.GetOk("image"); ok && v.(*schema.Set).Len() > 0 {
 		var iType, iName string
 		for _, imageMap := range v.(*schema.Set).List() {
-			imageInfo, ok := imageMap.(map[string]interface{})
+			imageInfo, ok := imageMap.(map[string]any)
 			if !ok {
 				errors = append(errors, diag.Diagnostic{
 					Severity: diag.Error,
@@ -176,7 +176,7 @@ func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta in
 			}
 
 			if iType != "" && iName != "" {
-				imageId, err := c.Image.FindImageId(
+				imageId, err := c.Image.Find(
 					region,
 					iName,
 					iType,
@@ -218,8 +218,8 @@ func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta in
 		abrak.NetworkIds = []string{opts.NetworkId}
 	} else {
 		var networkIds []string
-		for _, network := range networks.([]interface{}) {
-			networkId, err := c.Network.FindNetworkId(region, network.(string))
+		for _, network := range networks.([]any) {
+			networkId, err := c.Network.Find(region, network.(string))
 			if err != nil {
 				errors = append(errors, diag.Diagnostic{
 					Severity: diag.Error,
@@ -234,7 +234,7 @@ func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta in
 
 	// SecurityGroup
 	if securityGroups, ok := data.GetOk("security_groups"); !ok {
-		sg, err := c.SecurityGroup.FindSecurityGroupId(region, iaas.DefaultSecurityGroup)
+		sg, err := c.SecurityGroup.Find(region, iaas.DefaultSecurityGroup)
 		if err != nil {
 			errors = append(errors, diag.Diagnostic{
 				Severity: diag.Error,
@@ -247,8 +247,8 @@ func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta in
 		}}
 	} else {
 		var sgs []iaas.ServerSecurityGroupOpts
-		for _, sg := range securityGroups.([]interface{}) {
-			securityGroupId, err := c.SecurityGroup.FindSecurityGroupId(region, sg.(string))
+		for _, sg := range securityGroups.([]any) {
+			securityGroupId, err := c.SecurityGroup.Find(region, sg.(string))
 			if err != nil {
 				errors = append(errors, diag.Diagnostic{
 					Severity: diag.Error,
@@ -271,7 +271,7 @@ func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta in
 	return errors
 }
 
-func resourceAbrakRead(_ context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakRead(_ context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 
@@ -298,13 +298,13 @@ func resourceAbrakRead(_ context.Context, data *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceAbrakUpdate(_ context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakUpdate(_ context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	// TODO: we have to implement it
 	return errors
 }
 
-func resourceAbrakDelete(_ context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakDelete(_ context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 	region, ok := data.Get("region").(string)

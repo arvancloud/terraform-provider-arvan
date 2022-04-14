@@ -1,7 +1,7 @@
 # Terraform Arvan Provider IaaS Package
 
-This area is primarily for Arvan provider contributors and maintainers. For information on _using_ Terraform and the Arvan provider, see the links below.
-
+This area is primarily for Arvan provider contributors and maintainers. For information on _using_ Terraform and the
+Arvan provider, see the links below.
 
 ## Handy Links
 

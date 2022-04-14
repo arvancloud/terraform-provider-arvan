@@ -29,7 +29,7 @@ func DatasourceNetwork() *schema.Resource {
 	}
 }
 
-func datasourceNetworkRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func datasourceNetworkRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 
@@ -43,7 +43,7 @@ func datasourceNetworkRead(ctx context.Context, data *schema.ResourceData, meta 
 	}
 
 	name := data.Get("name").(string)
-	id, err := c.Network.FindNetworkId(region, name)
+	id, err := c.Network.Find(region, name)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,

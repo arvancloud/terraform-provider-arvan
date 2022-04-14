@@ -36,7 +36,7 @@ func ResourceAbrakTurnOn() *schema.Resource {
 	}
 }
 
-func ResourceAbrakTurnOnCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceAbrakTurnOnCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 

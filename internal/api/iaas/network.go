@@ -1,6 +1,7 @@
 package iaas
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api"
@@ -106,41 +107,31 @@ type Network struct {
 	requester *api.Requester
 }
 
-func NewNetwork(r *api.Requester) *Network {
+func NewNetwork(ctx context.Context) *Network {
 	return &Network{
-		requester: r,
+		requester: ctx.Value(api.RequesterContext).(*api.Requester),
 	}
 }
 
 func (n *Network) List(region string) ([]NetworkDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/networks", ECCEndPoint, Version, region)
 
-	data, err := n.requester.DoRequest("GET", endpoint, nil)
+	data, err := n.requester.List(endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(data, &response)
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var networkDetails []NetworkDetails
-	err = json.Unmarshal(dataBytes, &networkDetails)
-	if err != nil {
-		return nil, err
-	}
-
-	return networkDetails, nil
+	var details []NetworkDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }
 
-func (n *Network) FindNetworkId(region, name string) (*string, error) {
+func (n *Network) Find(region, name string) (*string, error) {
 	networks, err := n.List(region)
 	if err != nil {
 		return nil, err

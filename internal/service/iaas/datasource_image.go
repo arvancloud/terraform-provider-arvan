@@ -34,7 +34,7 @@ func DatasourceImage() *schema.Resource {
 	}
 }
 
-func datasourceImageRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func datasourceImageRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 
@@ -49,7 +49,7 @@ func datasourceImageRead(ctx context.Context, data *schema.ResourceData, meta in
 
 	imageName := data.Get("name").(string)
 	imageType := data.Get("type").(string)
-	id, err := c.Image.FindImageId(region, imageName, imageType)
+	id, err := c.Image.Find(region, imageName, imageType)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,

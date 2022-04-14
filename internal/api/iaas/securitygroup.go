@@ -1,6 +1,7 @@
 package iaas
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api"
@@ -45,41 +46,31 @@ type SecurityGroup struct {
 	requester *api.Requester
 }
 
-func NewSecurityGroup(r *api.Requester) *SecurityGroup {
+func NewSecurityGroup(ctx context.Context) *SecurityGroup {
 	return &SecurityGroup{
-		requester: r,
+		requester: ctx.Value(api.RequesterContext).(*api.Requester),
 	}
 }
 
 func (s *SecurityGroup) List(region string) ([]SecurityGroupDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/securities", ECCEndPoint, Version, region)
 
-	data, err := s.requester.DoRequest("GET", endpoint, nil)
+	data, err := s.requester.List(endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(data, &response)
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var securityGroups []SecurityGroupDetails
-	err = json.Unmarshal(dataBytes, &securityGroups)
-	if err != nil {
-		return nil, err
-	}
-
-	return securityGroups, nil
+	var details []SecurityGroupDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }
 
-func (s *SecurityGroup) FindSecurityGroupId(region, name string) (*string, error) {
+func (s *SecurityGroup) Find(region, name string) (*string, error) {
 	securityGroups, err := s.List(region)
 	if err != nil {
 		return nil, err

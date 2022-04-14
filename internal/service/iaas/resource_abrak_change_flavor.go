@@ -41,7 +41,7 @@ func ResourceAbrakChangeFlavor() *schema.Resource {
 	}
 }
 
-func resourceAbrakChangeFlavorCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakChangeFlavorCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 
@@ -70,7 +70,7 @@ func resourceAbrakChangeFlavorCreate(ctx context.Context, data *schema.ResourceD
 	return errors
 }
 
-func resourceAbrakChangeFlavorUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakChangeFlavorUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	if data.HasChange("flavor") {
 		return resourceAbrakChangeFlavorCreate(ctx, data, meta)
 	}

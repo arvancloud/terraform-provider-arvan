@@ -41,7 +41,7 @@ func ResourceAbrakRemoveSecurityGroup() *schema.Resource {
 	}
 }
 
-func resourceAbrakRemoveSecurityGroupCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakRemoveSecurityGroupCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 
@@ -70,7 +70,7 @@ func resourceAbrakRemoveSecurityGroupCreate(ctx context.Context, data *schema.Re
 	return errors
 }
 
-func resourceAbrakRemoveSecurityGroupUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakRemoveSecurityGroupUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	if data.HasChange("security_group_uuid") {
 		return resourceAbrakRemoveSecurityGroupCreate(ctx, data, meta)
 	}

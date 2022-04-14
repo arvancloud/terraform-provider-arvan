@@ -41,7 +41,7 @@ func ResourceAbrakRename() *schema.Resource {
 	}
 }
 
-func resourceAbrakRenameCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakRenameCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 
@@ -70,7 +70,7 @@ func resourceAbrakRenameCreate(ctx context.Context, data *schema.ResourceData, m
 	return errors
 }
 
-func resourceAbrakRenameUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakRenameUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	if data.HasChanges("new_name") {
 		return resourceAbrakRenameCreate(ctx, data, meta)
 	}

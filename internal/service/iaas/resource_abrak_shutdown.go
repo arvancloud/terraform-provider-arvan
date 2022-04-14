@@ -36,7 +36,7 @@ func ResourceAbrakShutDown() *schema.Resource {
 	}
 }
 
-func ResourceAbrakShutDownCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceAbrakShutDownCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 

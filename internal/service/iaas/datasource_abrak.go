@@ -33,7 +33,7 @@ func DatasourceAbrak() *schema.Resource {
 	}
 }
 
-func datasourceAbrakRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func datasourceAbrakRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 
@@ -47,7 +47,7 @@ func datasourceAbrakRead(ctx context.Context, data *schema.ResourceData, meta in
 	}
 
 	name := data.Get("name").(string)
-	id, err := c.Server.FindServerId(region, name)
+	id, err := c.Server.Find(region, name)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,

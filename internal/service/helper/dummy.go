@@ -6,6 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func DummyResourceAction(_ context.Context, _ *schema.ResourceData, _ interface{}) diag.Diagnostics {
+func DummyResourceAction(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
 	return nil
 }

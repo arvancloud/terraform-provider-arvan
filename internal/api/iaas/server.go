@@ -1,7 +1,7 @@
 package iaas
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api"
@@ -18,7 +18,7 @@ type ServerOpts struct {
 	ImageId        string                    `json:"image_id"`
 	SecurityGroups []ServerSecurityGroupOpts `json:"security_groups"`
 	SshKey         bool                      `json:"ssh_key,omitempty"`
-	KeyName        interface{}               `json:"key_name" default:"0"`
+	KeyName        any                       `json:"key_name" default:"0"`
 	Count          int                       `json:"count" default:"1"`
 	CreateType     string                    `json:"create_type,omitempty"`
 	DiskSize       int                       `json:"disk_size"`
@@ -88,42 +88,32 @@ type Server struct {
 	Actions   *ServerActions
 }
 
-func NewServer(requester *api.Requester) *Server {
+func NewServer(ctx context.Context) *Server {
 	return &Server{
-		requester: requester,
-		Actions:   NewServerActions(requester),
+		requester: ctx.Value(api.RequesterContext).(*api.Requester),
+		Actions:   NewServerActions(ctx),
 	}
 }
 
 func (s *Server) Read(region, id string) (*ServerDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v", ECCEndPoint, Version, region, id)
 
-	data, err := s.requester.DoRequest("GET", endpoint, nil)
+	data, err := s.requester.Read(endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(data, &response)
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var serverDetails *ServerDetails
-	err = json.Unmarshal(dataBytes, &serverDetails)
-	if err != nil {
-		return nil, err
-	}
-
-	return serverDetails, nil
+	var details *ServerDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }
 
-func (s *Server) FindServerId(region, name string) (*string, error) {
+func (s *Server) Find(region, name string) (*string, error) {
 	servers, err := s.List(region)
 	if err != nil {
 		return nil, err
@@ -141,76 +131,45 @@ func (s *Server) FindServerId(region, name string) (*string, error) {
 func (s *Server) List(region string) ([]ServerDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers", ECCEndPoint, Version, region)
 
-	data, err := s.requester.DoRequest("GET", endpoint, nil)
+	data, err := s.requester.List(endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(data, &response)
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var serverDetails []ServerDetails
-	err = json.Unmarshal(dataBytes, &serverDetails)
-	if err != nil {
-		return nil, err
-	}
-
-	return serverDetails, nil
+	var details []ServerDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }
 
-func (s *Server) Create(region string, body *ServerOpts) (*ServerDetails, error) {
-
+func (s *Server) Create(region string, opts *ServerOpts) (*ServerDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers", ECCEndPoint, Version, region)
 
-	requestBody, err := json.Marshal(body)
+	data, err := s.requester.Create(endpoint, opts, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	responseBody, err := s.requester.DoRequest("POST", endpoint, bytes.NewBuffer(requestBody))
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(responseBody, &response)
-	if err != nil {
-		return nil, err
-	}
-
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var serverDetails *ServerDetails
-	err = json.Unmarshal(dataBytes, &serverDetails)
-	if err != nil {
-		return nil, err
-	}
-
-	return serverDetails, nil
+	var details *ServerDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }
 
 func (s *Server) Delete(region, id string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v", ECCEndPoint, Version, region, id)
-
-	_, err := s.requester.DoRequestWithQuery("DELETE", endpoint, nil, map[string]string{
+	err := s.requester.Delete(endpoint, map[string]string{
 		"forceDelete": "true",
 	})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 type ServerOptions struct {
@@ -227,27 +186,17 @@ type ServerOptions struct {
 func (s *Server) Options(region string) (*ServerOptions, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/options", ECCEndPoint, Version, region)
 
-	responseBody, err := s.requester.DoRequest("GET", endpoint, nil)
+	data, err := s.requester.Read(endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(responseBody, &response)
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var serverOptions *ServerOptions
-	err = json.Unmarshal(dataBytes, &serverOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	return serverOptions, nil
+	var details *ServerOptions
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }

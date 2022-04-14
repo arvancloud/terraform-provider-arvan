@@ -1,6 +1,7 @@
 package iaas
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api"
@@ -38,36 +39,26 @@ type Sizes struct {
 	requester *api.Requester
 }
 
-func NewSizes(r *api.Requester) *Sizes {
+func NewSizes(ctx context.Context) *Sizes {
 	return &Sizes{
-		requester: r,
+		requester: ctx.Value(api.RequesterContext).(*api.Requester),
 	}
 }
 
 func (s *Sizes) ListPlans(region string) ([]PlanDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/sizes", ECCEndPoint, Version, region)
 
-	data, err := s.requester.DoRequest("GET", endpoint, nil)
+	data, err := s.requester.List(endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(data, &response)
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var plans []PlanDetails
-	err = json.Unmarshal(dataBytes, &plans)
-	if err != nil {
-		return nil, err
-	}
-
-	return plans, nil
+	var details []PlanDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }

@@ -50,8 +50,15 @@ func Provider() *schema.Provider {
 	return provider
 }
 
-// providerConfigure returns (api.Client, diag.Diagnostics)
-func providerConfigure(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-	apiKey := d.Get("api_key").(string)
-	return client.NewClient(apiKey), nil
+// providerConfigure returns (client.Client, diag.Diagnostics)
+func providerConfigure(_ context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
+	c, err := client.NewClient(&client.Config{
+		ApiKey: d.Get("api_key").(string),
+	})
+
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+
+	return c, nil
 }

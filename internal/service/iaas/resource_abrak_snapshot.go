@@ -41,7 +41,7 @@ func ResourceAbrakSnapshot() *schema.Resource {
 	}
 }
 
-func resourceAbrakSnapshotCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakSnapshotCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 
@@ -70,7 +70,7 @@ func resourceAbrakSnapshotCreate(ctx context.Context, data *schema.ResourceData,
 	return errors
 }
 
-func resourceAbrakSnapshotUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakSnapshotUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	if data.HasChanges("snapshot_name") {
 		return resourceAbrakSnapshotCreate(ctx, data, meta)
 	}

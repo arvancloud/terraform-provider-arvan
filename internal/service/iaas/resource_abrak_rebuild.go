@@ -41,7 +41,7 @@ func ResourceAbrakRebuild() *schema.Resource {
 	}
 }
 
-func resourceAbrakRebuildCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakRebuildCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 
@@ -70,7 +70,7 @@ func resourceAbrakRebuildCreate(ctx context.Context, data *schema.ResourceData, 
 	return errors
 }
 
-func resourceAbrakRebuildUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakRebuildUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	if data.HasChange("image_uuid") {
 		return resourceAbrakRebuildCreate(ctx, data, meta)
 	}

@@ -36,7 +36,7 @@ func ResourceAbrakChangePublicIP() *schema.Resource {
 	}
 }
 
-func ResourceAbrakChangePublicIPCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceAbrakChangePublicIPCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 

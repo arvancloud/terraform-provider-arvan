@@ -29,7 +29,7 @@ func DatasourceSecurityGroup() *schema.Resource {
 	}
 }
 
-func datasourceSecurityGroupRead(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func datasourceSecurityGroupRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 
@@ -43,7 +43,7 @@ func datasourceSecurityGroupRead(ctx context.Context, data *schema.ResourceData,
 	}
 
 	name := data.Get("name").(string)
-	id, err := c.SecurityGroup.FindSecurityGroupId(region, name)
+	id, err := c.SecurityGroup.Find(region, name)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,

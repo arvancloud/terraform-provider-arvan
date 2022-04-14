@@ -1,7 +1,7 @@
 package iaas
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api"
@@ -65,13 +65,13 @@ type Volume struct {
 	requester *api.Requester
 }
 
-func NewVolume(r *api.Requester) *Volume {
+func NewVolume(ctx context.Context) *Volume {
 	return &Volume{
-		requester: r,
+		requester: ctx.Value(api.RequesterContext).(*api.Requester),
 	}
 }
 
-func (v *Volume) FindVolumeId(region, name string) (*string, error) {
+func (v *Volume) Find(region, name string) (*string, error) {
 	volumes, err := v.List(region)
 	if err != nil {
 		return nil, err
@@ -90,151 +90,86 @@ func (v *Volume) List(region string) ([]VolumeDetails, error) {
 
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes", ECCEndPoint, Version, region)
 
-	responseBody, err := v.requester.DoRequest("GET", endpoint, nil)
+	data, err := v.requester.List(endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(responseBody, &response)
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var volumeDetails []VolumeDetails
-	err = json.Unmarshal(dataBytes, &volumeDetails)
-	if err != nil {
-		return nil, err
-	}
-
-	return volumeDetails, nil
+	var details []VolumeDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }
 
 func (v *Volume) Create(region string, opts *VolumeOpts) (*VolumeDetails, error) {
 
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes", ECCEndPoint, Version, region)
 
-	requestBody, err := json.Marshal(opts)
+	data, err := v.requester.Create(endpoint, opts, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	responseBody, err := v.requester.DoRequest("POST", endpoint, bytes.NewBuffer(requestBody))
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(responseBody, &response)
-	if err != nil {
-		return nil, err
-	}
-
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var volumeDetails *VolumeDetails
-	err = json.Unmarshal(dataBytes, &volumeDetails)
-	if err != nil {
-		return nil, err
-	}
-
-	return volumeDetails, nil
+	var details *VolumeDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }
 
 func (v *Volume) Detach(region, opts *VolumeAttachmentOpts) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/detach", ECCEndPoint, Version, region)
-
-	requestBody, err := json.Marshal(opts)
-	if err != nil {
-		return err
-	}
-
-	_, err = v.requester.DoRequest("PATCH", endpoint, bytes.NewBuffer(requestBody))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err := v.requester.Update(endpoint, opts, nil)
+	return err
 }
 
 func (v *Volume) Attach(region, opts *VolumeAttachmentOpts) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/attach", ECCEndPoint, Version, region)
-
-	requestBody, err := json.Marshal(opts)
-	if err != nil {
-		return err
-	}
-
-	_, err = v.requester.DoRequest("PATCH", endpoint, bytes.NewBuffer(requestBody))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err := v.requester.Update(endpoint, opts, nil)
+	return err
 }
 
 func (v *Volume) Limits(region string) (*VolumeLimitDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/limits", ECCEndPoint, Version, region)
 
-	data, err := v.requester.DoRequest("GET", endpoint, nil)
+	data, err := v.requester.List(endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(data, &response)
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var volumeLimitDetails *VolumeLimitDetails
-	err = json.Unmarshal(dataBytes, &volumeLimitDetails)
-	if err != nil {
-		return nil, err
-	}
-
-	return volumeLimitDetails, nil
+	var details *VolumeLimitDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }
 
 func (v *Volume) Read(region, id string) (*VolumeDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/%v", ECCEndPoint, Version, region, id)
 
-	data, err := v.requester.DoRequest("GET", endpoint, nil)
+	data, err := v.requester.Read(endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(data, &response)
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var volumeDetails *VolumeDetails
-	err = json.Unmarshal(dataBytes, &volumeDetails)
-	if err != nil {
-		return nil, err
-	}
-
-	return volumeDetails, nil
+	var details *VolumeDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }
 
 func (v *Volume) Delete(region, id string) error {
@@ -249,35 +184,19 @@ func (v *Volume) Delete(region, id string) error {
 }
 
 func (v *Volume) Update(region, id string, opts *VolumeUpdateOpts) (*VolumeDetails, error) {
-
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/%v", ECCEndPoint, Version, region, id)
 
-	requestBody, err := json.Marshal(opts)
+	data, err := v.requester.Update(endpoint, opts, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	responseBody, err := v.requester.DoRequest("PATCH", endpoint, bytes.NewBuffer(requestBody))
+	marshal, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
 
-	var response *api.SuccessResponse
-	err = json.Unmarshal(responseBody, &response)
-	if err != nil {
-		return nil, err
-	}
-
-	dataBytes, err := json.Marshal(response.Data)
-	if err != nil {
-		return nil, err
-	}
-
-	var volumeDetails *VolumeDetails
-	err = json.Unmarshal(dataBytes, &volumeDetails)
-	if err != nil {
-		return nil, err
-	}
-
-	return volumeDetails, nil
+	var details *VolumeDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }

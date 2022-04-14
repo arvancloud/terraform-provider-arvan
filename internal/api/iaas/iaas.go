@@ -24,17 +24,20 @@ type Tag struct {
 }
 
 type IaaS struct {
+	FloatIP       *FloatIP
 	Network       *Network
 	Server        *Server
 	Image         *Image
 	Sizes         *Sizes
 	SecurityGroup *SecurityGroup
 	Volume        *Volume
+	Region        *Region
 }
 
 func NewIaaS(server *Server, image *Image,
-	sizes *Sizes, network *Network, securityGroup *SecurityGroup,
-	volume *Volume) *IaaS {
+	sizes *Sizes, network *Network,
+	securityGroup *SecurityGroup, volume *Volume,
+	floatIP *FloatIP, region *Region) *IaaS {
 	return &IaaS{
 		Network:       network,
 		Server:        server,
@@ -42,5 +45,7 @@ func NewIaaS(server *Server, image *Image,
 		Sizes:         sizes,
 		SecurityGroup: securityGroup,
 		Volume:        volume,
+		FloatIP:       floatIP,
+		Region:        region,
 	}
 }

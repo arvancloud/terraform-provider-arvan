@@ -36,7 +36,7 @@ func ResourceAbrakResetRootPassword() *schema.Resource {
 	}
 }
 
-func ResourceAbrakResetRootPasswordCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceAbrakResetRootPasswordCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 

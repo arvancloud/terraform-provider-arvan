@@ -41,7 +41,7 @@ func ResourceAbrakChangeDiskSize() *schema.Resource {
 	}
 }
 
-func resourceAbrakChangeDiskSizeCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakChangeDiskSizeCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	c := meta.(*client.Client).Iaas
 
@@ -70,7 +70,7 @@ func resourceAbrakChangeDiskSizeCreate(ctx context.Context, data *schema.Resourc
 	return errors
 }
 
-func resourceAbrakChangeDiskSizeUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceAbrakChangeDiskSizeUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	if data.HasChange("size") {
 		return resourceAbrakChangeDiskSizeCreate(ctx, data, meta)
 	}

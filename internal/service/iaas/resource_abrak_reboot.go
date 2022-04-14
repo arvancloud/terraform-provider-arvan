@@ -42,7 +42,7 @@ func ResourceAbrakReboot() *schema.Resource {
 	}
 }
 
-func ResourceAbrakRebootCreate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceAbrakRebootCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
 	var err error
 	c := meta.(*client.Client).Iaas
@@ -77,7 +77,7 @@ func ResourceAbrakRebootCreate(ctx context.Context, data *schema.ResourceData, m
 	return errors
 }
 
-func ResourceAbrakRebootUpdate(ctx context.Context, data *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func ResourceAbrakRebootUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	if data.HasChange("hard_reboot") {
 		return ResourceAbrakRebootCreate(ctx, data, meta)
 	}
