@@ -24,7 +24,7 @@ type FloatIPDetails struct {
 	UpdatedAt         string         `json:"updated_at"`
 	RevisionNumber    int            `json:"revision_number"`
 	Server            *ServerDetails `json:"server"`
-	Tags              []Tag          `json:"tags"`
+	Tags              []TagDetails   `json:"tags"`
 }
 
 type FloatIPAttachOpts struct {
@@ -41,12 +41,14 @@ type FloatIP struct {
 	requester *api.Requester
 }
 
+// NewFloatIP - init communicator with FloatIP
 func NewFloatIP(ctx context.Context) *FloatIP {
 	return &FloatIP{
 		requester: ctx.Value(api.RequesterContext).(*api.Requester),
 	}
 }
 
+// List - return all floatips
 func (f *FloatIP) List(region string) ([]FloatIPDetails, error) {
 
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/float-ips", ECCEndPoint, Version, region)
@@ -66,6 +68,7 @@ func (f *FloatIP) List(region string) ([]FloatIPDetails, error) {
 	return details, err
 }
 
+// Create - create a floatip
 func (f *FloatIP) Create(region string, opts *FloatIPOpts) (*FloatIPDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/float-ips", ECCEndPoint, Version, region)
 
@@ -84,19 +87,22 @@ func (f *FloatIP) Create(region string, opts *FloatIPOpts) (*FloatIPDetails, err
 	return details, err
 }
 
+// Delete - delete a floatip
 func (f *FloatIP) Delete(region, id string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/fload-ips/%v", ECCEndPoint, Version, region, id)
 	return f.requester.Delete(endpoint, nil)
 }
 
+// Attach - attach a floatip to a server
 func (f *FloatIP) Attach(region, id string, opts *FloatIPAttachOpts) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/float-ip/%v/attach", ECCEndPoint, Version, region, id)
-	_, err := f.requester.Update(endpoint, opts, nil)
+	_, err := f.requester.Patch(endpoint, opts, nil)
 	return err
 }
 
+// Detach - attach a floatip from a server
 func (f *FloatIP) Detach(region string, opts FloatIPDetachOpts) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/float-ip/detach", ECCEndPoint, Version, region)
-	_, err := f.requester.Update(endpoint, opts, nil)
+	_, err := f.requester.Patch(endpoint, opts, nil)
 	return err
 }

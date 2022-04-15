@@ -1,4 +1,4 @@
-package iaas
+package resources
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakReboot() *schema.Resource {
+func ResourceAbrakRebuild() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceAbrakRebootCreate,
+		CreateContext: resourceAbrakRebuildCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: ResourceAbrakRebootUpdate,
+		UpdateContext: resourceAbrakRebuildUpdate,
 		DeleteContext: helper.DummyResourceAction,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -32,20 +32,18 @@ func ResourceAbrakReboot() *schema.Resource {
 				Required:    true,
 				Description: "uuid of abrak",
 			},
-			"hard_reboot": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "hard reboot",
+			"image_uuid": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "uuid of image",
 			},
 		},
 	}
 }
 
-func ResourceAbrakRebootCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceAbrakRebuildCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	var err error
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -58,17 +56,12 @@ func ResourceAbrakRebootCreate(ctx context.Context, data *schema.ResourceData, m
 
 	id := data.Get("uuid").(string)
 
-	hardReboot := data.Get("hard_reboot").(bool)
-	if hardReboot {
-		err = c.Server.Actions.HardReboot(region, id)
-	} else {
-		err = c.Server.Actions.SoftReboot(region, id)
-	}
-
+	imageUuid := data.Get("image_uuid").(string)
+	err := c.Server.Actions.Rebuild(region, id, imageUuid)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not turn on server %v", id),
+			Summary:  fmt.Sprintf("could not rebuild server %v", id),
 		})
 		return errors
 	}
@@ -77,9 +70,9 @@ func ResourceAbrakRebootCreate(ctx context.Context, data *schema.ResourceData, m
 	return errors
 }
 
-func ResourceAbrakRebootUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	if data.HasChange("hard_reboot") {
-		return ResourceAbrakRebootCreate(ctx, data, meta)
+func resourceAbrakRebuildUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+	if data.HasChange("image_uuid") {
+		return resourceAbrakRebuildCreate(ctx, data, meta)
 	}
 	return nil
 }

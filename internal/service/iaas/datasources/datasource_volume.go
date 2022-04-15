@@ -1,4 +1,4 @@
-package iaas
+package datasources
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func DatasourceImage() *schema.Resource {
+func DatasourceVolume() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: datasourceImageRead,
+		ReadContext: datasourceVolumeRead,
 		Schema: map[string]*schema.Schema{
 			"region": {
 				Type:         schema.TypeString,
@@ -20,23 +20,18 @@ func DatasourceImage() *schema.Resource {
 				Description:  "region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"type": {
+			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "type of image",
-			},
-			"name": {
-				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "name of image",
+				Description: "name of volume",
 			},
 		},
 	}
 }
 
-func datasourceImageRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func datasourceVolumeRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -47,17 +42,16 @@ func datasourceImageRead(ctx context.Context, data *schema.ResourceData, meta an
 		return errors
 	}
 
-	imageName := data.Get("name").(string)
-	imageType := data.Get("type").(string)
-	id, err := c.Image.Find(region, imageName, imageType)
+	name := data.Get("name").(string)
+	network, err := c.Network.Find(region, name)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("image %v not found", imageName),
+			Summary:  fmt.Sprintf("network %v not found", name),
 		})
 		return errors
 	}
 
-	data.SetId(*id)
+	data.SetId(network.ID)
 	return errors
 }

@@ -65,13 +65,15 @@ type Volume struct {
 	requester *api.Requester
 }
 
+// NewVolume - init communicator with Volume
 func NewVolume(ctx context.Context) *Volume {
 	return &Volume{
 		requester: ctx.Value(api.RequesterContext).(*api.Requester),
 	}
 }
 
-func (v *Volume) Find(region, name string) (*string, error) {
+// Find - looking for a volume by name
+func (v *Volume) Find(region, name string) (*VolumeDetails, error) {
 	volumes, err := v.List(region)
 	if err != nil {
 		return nil, err
@@ -79,13 +81,14 @@ func (v *Volume) Find(region, name string) (*string, error) {
 
 	for _, volume := range volumes {
 		if volume.Name == name {
-			return &volume.ID, nil
+			return &volume, nil
 		}
 	}
 
 	return nil, fmt.Errorf("volume %v not found", name)
 }
 
+// List - return all volumes
 func (v *Volume) List(region string) ([]VolumeDetails, error) {
 
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes", ECCEndPoint, Version, region)
@@ -105,6 +108,7 @@ func (v *Volume) List(region string) ([]VolumeDetails, error) {
 	return details, err
 }
 
+// Create - create a volume
 func (v *Volume) Create(region string, opts *VolumeOpts) (*VolumeDetails, error) {
 
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes", ECCEndPoint, Version, region)
@@ -124,36 +128,7 @@ func (v *Volume) Create(region string, opts *VolumeOpts) (*VolumeDetails, error)
 	return details, err
 }
 
-func (v *Volume) Detach(region, opts *VolumeAttachmentOpts) error {
-	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/detach", ECCEndPoint, Version, region)
-	_, err := v.requester.Update(endpoint, opts, nil)
-	return err
-}
-
-func (v *Volume) Attach(region, opts *VolumeAttachmentOpts) error {
-	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/attach", ECCEndPoint, Version, region)
-	_, err := v.requester.Update(endpoint, opts, nil)
-	return err
-}
-
-func (v *Volume) Limits(region string) (*VolumeLimitDetails, error) {
-	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/limits", ECCEndPoint, Version, region)
-
-	data, err := v.requester.List(endpoint, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	marshal, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	var details *VolumeLimitDetails
-	err = json.Unmarshal(marshal, &details)
-	return details, err
-}
-
+// Read - get details of a volume
 func (v *Volume) Read(region, id string) (*VolumeDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/%v", ECCEndPoint, Version, region, id)
 
@@ -172,21 +147,11 @@ func (v *Volume) Read(region, id string) (*VolumeDetails, error) {
 	return details, err
 }
 
-func (v *Volume) Delete(region, id string) error {
-	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/%v", ECCEndPoint, Version, region, id)
-
-	_, err := v.requester.DoRequest("DELETE", endpoint, nil)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
+// Update - edit a volume
 func (v *Volume) Update(region, id string, opts *VolumeUpdateOpts) (*VolumeDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/%v", ECCEndPoint, Version, region, id)
 
-	data, err := v.requester.Update(endpoint, opts, nil)
+	data, err := v.requester.Patch(endpoint, opts, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -197,6 +162,45 @@ func (v *Volume) Update(region, id string, opts *VolumeUpdateOpts) (*VolumeDetai
 	}
 
 	var details *VolumeDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
+}
+
+// Delete - delete a volume
+func (v *Volume) Delete(region, id string) error {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/%v", ECCEndPoint, Version, region, id)
+	return v.requester.Delete(endpoint, nil)
+}
+
+// Detach - detach a volume from a server
+func (v *Volume) Detach(region string, opts *VolumeAttachmentOpts) error {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/detach", ECCEndPoint, Version, region)
+	_, err := v.requester.Patch(endpoint, opts, nil)
+	return err
+}
+
+// Attach - attach a volume to a server
+func (v *Volume) Attach(region string, opts *VolumeAttachmentOpts) error {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/attach", ECCEndPoint, Version, region)
+	_, err := v.requester.Patch(endpoint, opts, nil)
+	return err
+}
+
+// Limits - show general limits of volumes
+func (v *Volume) Limits(region string) (*VolumeLimitDetails, error) {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/limits", ECCEndPoint, Version, region)
+
+	data, err := v.requester.List(endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	marshal, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	var details *VolumeLimitDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }

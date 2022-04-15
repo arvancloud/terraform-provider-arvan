@@ -1,4 +1,4 @@
-package iaas
+package datasources
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func DatasourceAbrak() *schema.Resource {
+func DatasourceNetwork() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: datasourceAbrakRead,
+		ReadContext: datasourceNetworkRead,
 		Schema: map[string]*schema.Schema{
 			"region": {
 				Type:         schema.TypeString,
@@ -23,19 +23,15 @@ func DatasourceAbrak() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "name of abrak",
-			},
-			"ha_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
+				Description: "name of network",
 			},
 		},
 	}
 }
 
-func datasourceAbrakRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func datasourceNetworkRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -47,15 +43,15 @@ func datasourceAbrakRead(ctx context.Context, data *schema.ResourceData, meta an
 	}
 
 	name := data.Get("name").(string)
-	id, err := c.Server.Find(region, name)
+	network, err := c.Network.Find(region, name)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("abrak %v not found", name),
+			Summary:  fmt.Sprintf("network %v not found", name),
 		})
 		return errors
 	}
 
-	data.SetId(*id)
+	data.SetId(network.ID)
 	return errors
 }

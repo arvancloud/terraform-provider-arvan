@@ -1,4 +1,4 @@
-package iaas
+package resources
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakRebuild() *schema.Resource {
+func ResourceAbrakChangePublicIP() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceAbrakRebuildCreate,
+		CreateContext: ResourceAbrakChangePublicIPCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: resourceAbrakRebuildUpdate,
+		UpdateContext: helper.DummyResourceAction,
 		DeleteContext: helper.DummyResourceAction,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -32,18 +32,13 @@ func ResourceAbrakRebuild() *schema.Resource {
 				Required:    true,
 				Description: "uuid of abrak",
 			},
-			"image_uuid": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "uuid of image",
-			},
 		},
 	}
 }
 
-func resourceAbrakRebuildCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func ResourceAbrakChangePublicIPCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -56,23 +51,15 @@ func resourceAbrakRebuildCreate(ctx context.Context, data *schema.ResourceData, 
 
 	id := data.Get("uuid").(string)
 
-	imageUuid := data.Get("image_uuid").(string)
-	err := c.Server.Actions.Rebuild(region, id, imageUuid)
+	err := c.Server.Actions.ChangePublicIP(region, id)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not rebuild server %v", id),
+			Summary:  fmt.Sprintf("could not shutdown server %v", id),
 		})
 		return errors
 	}
 
 	data.SetId(id)
 	return errors
-}
-
-func resourceAbrakRebuildUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	if data.HasChange("image_uuid") {
-		return resourceAbrakRebuildCreate(ctx, data, meta)
-	}
-	return nil
 }

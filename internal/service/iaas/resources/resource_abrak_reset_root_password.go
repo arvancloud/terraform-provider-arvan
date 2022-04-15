@@ -1,4 +1,4 @@
-package iaas
+package resources
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakSnapshot() *schema.Resource {
+func ResourceAbrakResetRootPassword() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceAbrakSnapshotCreate,
+		CreateContext: ResourceAbrakResetRootPasswordCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: resourceAbrakSnapshotUpdate,
+		UpdateContext: helper.DummyResourceAction,
 		DeleteContext: helper.DummyResourceAction,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -32,18 +32,13 @@ func ResourceAbrakSnapshot() *schema.Resource {
 				Required:    true,
 				Description: "uuid of abrak",
 			},
-			"snapshot_name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "snapshot name of abrak",
-			},
 		},
 	}
 }
 
-func resourceAbrakSnapshotCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func ResourceAbrakResetRootPasswordCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -56,23 +51,15 @@ func resourceAbrakSnapshotCreate(ctx context.Context, data *schema.ResourceData,
 
 	id := data.Get("uuid").(string)
 
-	snapshotName := data.Get("snapshot_name").(string)
-	err := c.Server.Actions.Snapshot(region, id, snapshotName)
+	err := c.Server.Actions.ResetRootPassword(region, id)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not take snapshot server %v to %v", id, snapshotName),
+			Summary:  fmt.Sprintf("could not shutdown server %v", id),
 		})
 		return errors
 	}
 
 	data.SetId(id)
 	return errors
-}
-
-func resourceAbrakSnapshotUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	if data.HasChanges("snapshot_name") {
-		return resourceAbrakSnapshotCreate(ctx, data, meta)
-	}
-	return nil
 }

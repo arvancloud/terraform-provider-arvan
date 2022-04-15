@@ -1,4 +1,4 @@
-package iaas
+package resources
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakChangeDiskSize() *schema.Resource {
+func ResourceAbrakShutDown() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceAbrakChangeDiskSizeCreate,
+		CreateContext: ResourceAbrakShutDownCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: resourceAbrakChangeDiskSizeUpdate,
+		UpdateContext: helper.DummyResourceAction,
 		DeleteContext: helper.DummyResourceAction,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -32,18 +32,13 @@ func ResourceAbrakChangeDiskSize() *schema.Resource {
 				Required:    true,
 				Description: "uuid of abrak",
 			},
-			"size": {
-				Type:        schema.TypeInt,
-				Required:    true,
-				Description: "size of abrak",
-			},
 		},
 	}
 }
 
-func resourceAbrakChangeDiskSizeCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func ResourceAbrakShutDownCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -55,24 +50,15 @@ func resourceAbrakChangeDiskSizeCreate(ctx context.Context, data *schema.Resourc
 	}
 
 	id := data.Get("uuid").(string)
-
-	size := data.Get("size").(int)
-	err := c.Server.Actions.ChangeDiskSize(region, id, size)
+	err := c.Server.Actions.ShutDown(region, id)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not rename server %v to %v", id, size),
+			Summary:  fmt.Sprintf("could not shutdown server %v", id),
 		})
 		return errors
 	}
 
 	data.SetId(id)
 	return errors
-}
-
-func resourceAbrakChangeDiskSizeUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	if data.HasChange("size") {
-		return resourceAbrakChangeDiskSizeCreate(ctx, data, meta)
-	}
-	return nil
 }

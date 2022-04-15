@@ -1,4 +1,4 @@
-package iaas
+package resources
 
 import (
 	"context"
@@ -43,7 +43,7 @@ func ResourceAbrakChangeFlavor() *schema.Resource {
 
 func resourceAbrakChangeFlavorCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {

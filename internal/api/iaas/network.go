@@ -7,13 +7,23 @@ import (
 	"github.com/arvancloud/terraform-provider-arvan/internal/api"
 )
 
-type NetworkOpts struct {
-	Name          string `json:"name"`
-	SubnetIp      string `json:"subnet_ip"`
-	EnableGateway bool   `json:"enable_gateway"`
-	SubnetGateway string `json:"subnet_gateway"`
-	Dhcp          string `json:"dhcp"`
-	DnsServers    string `json:"dns_servers"`
+type SubnetOpts struct {
+	Name          string   `json:"name"`
+	SubnetIP      string   `json:"subnet_ip"`
+	EnableGateway bool     `json:"enable_gateway"`
+	SubnetGateway string   `json:"subnet_gateway"`
+	Dhcp          string   `json:"dhcp"`
+	DnsServers    []string `json:"dns_servers"`
+}
+
+type NetworkAttachOpts struct {
+	ServerId           string `json:"server_id"`
+	IP                 string `json:"ip"`
+	EnablePortSecurity bool   `json:"enablePortSecurity"`
+}
+
+type NetworkDetachOpts struct {
+	ServerId string `json:"server_id"`
 }
 
 type PoolDetails struct {
@@ -35,7 +45,7 @@ type NetworkServerIP struct {
 	MacAddress          string `json:"mac_address"`
 	PortId              string `json:"port_id"`
 	PortSecurityEnabled bool   `json:"port_security_enabled"`
-	Ptr                 bool   `json:"ptr"`
+	Ptr                 string `json:"ptr"`
 	Public              bool   `json:"public"`
 	SubnetId            string `json:"subnet_id"`
 	SubnetName          string `json:"subnet_name"`
@@ -75,7 +85,7 @@ type SubnetDetails struct {
 	SubnetPoolId    string          `json:"subnetpool_id"`
 	ServiceType     string          `json:"service_type"`
 	RevisionNumber  int             `json:"revision_number"`
-	Tags            []Tag           `json:"tags"`
+	Tags            []TagDetails    `json:"tags"`
 	Servers         []NetworkServer `json:"servers"`
 }
 
@@ -100,19 +110,21 @@ type NetworkDetails struct {
 	PortSecurityEnabled   bool            `json:"port_security_enabled"`
 	AvailabilityZoneHints string          `json:"availability_zone_hints"`
 	AvailabilityZones     string          `json:"availability_zones"`
-	Tags                  []Tag           `json:"tags"`
+	Tags                  []TagDetails    `json:"tags"`
 }
 
 type Network struct {
 	requester *api.Requester
 }
 
+// NewNetwork - init communicator with network
 func NewNetwork(ctx context.Context) *Network {
 	return &Network{
 		requester: ctx.Value(api.RequesterContext).(*api.Requester),
 	}
 }
 
+// List - return all network
 func (n *Network) List(region string) ([]NetworkDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/networks", ECCEndPoint, Version, region)
 
@@ -131,7 +143,8 @@ func (n *Network) List(region string) ([]NetworkDetails, error) {
 	return details, err
 }
 
-func (n *Network) Find(region, name string) (*string, error) {
+// Find - looking for a network by name
+func (n *Network) Find(region, name string) (*NetworkDetails, error) {
 	networks, err := n.List(region)
 	if err != nil {
 		return nil, err
@@ -139,9 +152,87 @@ func (n *Network) Find(region, name string) (*string, error) {
 
 	for _, network := range networks {
 		if network.Name == name {
-			return &network.ID, nil
+			return &network, nil
 		}
 	}
 
 	return nil, fmt.Errorf("network %v not found", name)
+}
+
+// Detach - detach a network from a server
+func (n *Network) Detach(region, id string, opts *NetworkDetachOpts) error {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/networks/%v/detach", ECCEndPoint, Version, region, id)
+	_, err := n.requester.Patch(endpoint, opts, nil)
+	return err
+}
+
+// Attach - attach a network to a server
+func (n *Network) Attach(region, id string, opts *NetworkAttachOpts) error {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/networks/%v/attach", ECCEndPoint, Version, region, id)
+	_, err := n.requester.Patch(endpoint, opts, nil)
+	return err
+}
+
+// ReadSubnet - get subnet details
+func (n *Network) ReadSubnet(region, id string) ([]SubnetDetails, error) {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/subnets/%v", ECCEndPoint, Version, region, id)
+
+	data, err := n.requester.Read(endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	marshal, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	var details []SubnetDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
+}
+
+// CreateSubnet - create a subnet
+func (n *Network) CreateSubnet(region string, opts *SubnetOpts) (*SubnetDetails, error) {
+
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/subnets", ECCEndPoint, Version, region)
+
+	data, err := n.requester.Create(endpoint, opts, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	marshal, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	var details *SubnetDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
+}
+
+// UpdateSubnet - edit a subnet
+func (n *Network) UpdateSubnet(region, id string, opts *SubnetOpts) (*SubnetDetails, error) {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/subnets/%v", ECCEndPoint, Version, region, id)
+
+	data, err := n.requester.Patch(endpoint, opts, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	marshal, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	var details *SubnetDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
+}
+
+// DeleteSubnet - delete a subnet
+func (n *Network) DeleteSubnet(region, id string) error {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/subnets/%v", ECCEndPoint, Version, region, id)
+	return n.requester.Delete(endpoint, nil)
 }

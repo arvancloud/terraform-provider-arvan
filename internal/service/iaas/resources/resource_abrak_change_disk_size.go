@@ -1,4 +1,4 @@
-package iaas
+package resources
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakAddSecurityGroup() *schema.Resource {
+func ResourceAbrakChangeDiskSize() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceAbrakAddSecurityGroupCreate,
+		CreateContext: resourceAbrakChangeDiskSizeCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: resourceAbrakAddSecurityGroupUpdate,
+		UpdateContext: resourceAbrakChangeDiskSizeUpdate,
 		DeleteContext: helper.DummyResourceAction,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -32,18 +32,18 @@ func ResourceAbrakAddSecurityGroup() *schema.Resource {
 				Required:    true,
 				Description: "uuid of abrak",
 			},
-			"security_group_uuid": {
-				Type:        schema.TypeString,
+			"size": {
+				Type:        schema.TypeInt,
 				Required:    true,
-				Description: "uuid of security group",
+				Description: "size of abrak",
 			},
 		},
 	}
 }
 
-func resourceAbrakAddSecurityGroupCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceAbrakChangeDiskSizeCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -56,12 +56,12 @@ func resourceAbrakAddSecurityGroupCreate(ctx context.Context, data *schema.Resou
 
 	id := data.Get("uuid").(string)
 
-	securityGroupId := data.Get("security_group_uuid").(string)
-	err := c.Server.Actions.AddSecurityGroup(region, id, securityGroupId)
+	size := data.Get("size").(int)
+	err := c.Server.Actions.ChangeDiskSize(region, id, size)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not add security group %v server %v", securityGroupId, id),
+			Summary:  fmt.Sprintf("could not rename server %v to %v", id, size),
 		})
 		return errors
 	}
@@ -70,9 +70,9 @@ func resourceAbrakAddSecurityGroupCreate(ctx context.Context, data *schema.Resou
 	return errors
 }
 
-func resourceAbrakAddSecurityGroupUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	if data.HasChange("security_group_uuid") {
-		return resourceAbrakAddSecurityGroupCreate(ctx, data, meta)
+func resourceAbrakChangeDiskSizeUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+	if data.HasChange("size") {
+		return resourceAbrakChangeDiskSizeCreate(ctx, data, meta)
 	}
 	return nil
 }

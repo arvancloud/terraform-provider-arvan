@@ -8,20 +8,20 @@ import (
 )
 
 type RegionDetails struct {
-	Flag          string `json:"flag"`
-	Country       string `json:"country"`
-	CityCode      string `json:"city_code"`
-	DcCode        string `json:"dc_code"`
-	Dc            string `json:"dc"`
-	Code          string `json:"code"`
-	Region        string `json:"region"`
-	Create        bool   `json:"create"`
-	Soon          bool   `json:"soon"`
-	Default       bool   `json:"default,omitempty"`
-	VolumeBackend bool   `json:"volume_backend"`
-	New           bool   `json:"new"`
-	Beta          bool   `json:"beta"`
-	Visible       bool   `json:"visible"`
+	Flag         string `json:"flag"`
+	Country      string `json:"country"`
+	CityCode     string `json:"city_code"`
+	DcCode       string `json:"dc_code"`
+	Dc           string `json:"dc"`
+	Code         string `json:"code"`
+	Region       string `json:"region"`
+	Create       bool   `json:"create"`
+	Soon         bool   `json:"soon"`
+	Default      bool   `json:"default,omitempty"`
+	VolumeBacked bool   `json:"volume_backed"`
+	New          bool   `json:"new"`
+	Beta         bool   `json:"beta"`
+	Visible      bool   `json:"visible"`
 }
 
 type Region struct {
@@ -34,6 +34,7 @@ func NewRegion(ctx context.Context) *Region {
 	}
 }
 
+// List - return all regions
 func (r *Region) List() ([]RegionDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/details", ECCEndPoint, Version)
 

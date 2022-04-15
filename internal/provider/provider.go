@@ -3,12 +3,13 @@ package provider
 import (
 	"context"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api/client"
-	"github.com/arvancloud/terraform-provider-arvan/internal/service/iaas"
+	"github.com/arvancloud/terraform-provider-arvan/internal/service/iaas/datasources"
+	"github.com/arvancloud/terraform-provider-arvan/internal/service/iaas/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// Provider returns a *schema.Provider.
+// Provider returns a *schema.Provider
 func Provider() *schema.Provider {
 
 	// The actual provider
@@ -23,27 +24,30 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"arvan_iaas_abrak":                       iaas.ResourceAbrak(),
-			"arvan_iaas_abrak_rename":                iaas.ResourceAbrakRename(),
-			"arvan_iaas_abrak_shutdown":              iaas.ResourceAbrakShutDown(),
-			"arvan_iaas_abrak_turn_on":               iaas.ResourceAbrakTurnOn(),
-			"arvan_iaas_abrak_reboot":                iaas.ResourceAbrakReboot(),
-			"arvan_iaas_abrak_rescue":                iaas.ResourceAbrakRescue(),
-			"arvan_iaas_abrak_rebuild":               iaas.ResourceAbrakRebuild(),
-			"arvan_iaas_abrak_change_flavor":         iaas.ResourceAbrakChangeFlavor(),
-			"arvan_iaas_abrak_change_disk_size":      iaas.ResourceAbrakChangeDiskSize(),
-			"arvan_iaas_abrak_snapshot":              iaas.ResourceAbrakSnapshot(),
-			"arvan_iaas_abrak_add_security_group":    iaas.ResourceAbrakAddSecurityGroup(),
-			"arvan_iaas_abrak_remove_security_group": iaas.ResourceAbrakRemoveSecurityGroup(),
-			"arvan_iaas_abrak_reset_root_password":   iaas.ResourceAbrakResetRootPassword(),
-			"arvan_iaas_abrak_change_public_ip":      iaas.ResourceAbrakChangePublicIP(),
+			"arvan_iaas_abrak":                       resources.ResourceAbrak(),
+			"arvan_iaas_abrak_rename":                resources.ResourceAbrakRename(),
+			"arvan_iaas_abrak_shutdown":              resources.ResourceAbrakShutDown(),
+			"arvan_iaas_abrak_turn_on":               resources.ResourceAbrakTurnOn(),
+			"arvan_iaas_abrak_reboot":                resources.ResourceAbrakReboot(),
+			"arvan_iaas_abrak_rescue":                resources.ResourceAbrakRescue(),
+			"arvan_iaas_abrak_rebuild":               resources.ResourceAbrakRebuild(),
+			"arvan_iaas_abrak_change_flavor":         resources.ResourceAbrakChangeFlavor(),
+			"arvan_iaas_abrak_change_disk_size":      resources.ResourceAbrakChangeDiskSize(),
+			"arvan_iaas_abrak_snapshot":              resources.ResourceAbrakSnapshot(),
+			"arvan_iaas_abrak_add_security_group":    resources.ResourceAbrakAddSecurityGroup(),
+			"arvan_iaas_abrak_remove_security_group": resources.ResourceAbrakRemoveSecurityGroup(),
+			"arvan_iaas_abrak_reset_root_password":   resources.ResourceAbrakResetRootPassword(),
+			"arvan_iaas_abrak_change_public_ip":      resources.ResourceAbrakChangePublicIP(),
+			"arvan_iaas_sshkey":                      resources.ResourceSSHKey(),
+			"arvan_iaas_floatip":                     resources.ResourceFloatIP(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"arvan_iaas_abrak":          iaas.DatasourceAbrak(),
-			"arvan_iaas_network":        iaas.DatasourceNetwork(),
-			"arvan_iaas_image":          iaas.DatasourceImage(),
-			"arvan_iaas_volume":         iaas.DatasourceVolume(),
-			"arvan_iaas_security_group": iaas.DatasourceSecurityGroup(),
+			"arvan_iaas_abrak":          datasources.DatasourceAbrak(),
+			"arvan_iaas_network":        datasources.DatasourceNetwork(),
+			"arvan_iaas_image":          datasources.DatasourceImage(),
+			"arvan_iaas_volume":         datasources.DatasourceVolume(),
+			"arvan_iaas_security_group": datasources.DatasourceSecurityGroup(),
+			"arvan_iaas_sshkey":         datasources.DatasourceSSHKey(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

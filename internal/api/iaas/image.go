@@ -15,21 +15,21 @@ const (
 )
 
 type ImageServerDetails struct {
-	ID              string `json:"id"`
-	Status          string `json:"status"`
-	Name            string `json:"name"`
-	MinRam          int    `json:"min_ram"`
-	MinDisk         int    `json:"min_disk"`
-	DiskFormat      string `json:"disk_format"`
-	Size            int64  `json:"size"`
-	RealSize        int64  `json:"real_size"`
-	Checksum        string `json:"checksum"`
-	CreatedAt       string `json:"created_at"`
-	ContainerFormat string `json:"container_format"`
-	Tags            []Tag  `json:"tags"`
-	Abrak           string `json:"abrak"`
-	AbrakId         string `json:"abrak_id"`
-	ImageType       string `json:"image_type"`
+	ID              string       `json:"id"`
+	Status          string       `json:"status"`
+	Name            string       `json:"name"`
+	MinRam          int          `json:"min_ram"`
+	MinDisk         int          `json:"min_disk"`
+	DiskFormat      string       `json:"disk_format"`
+	Size            int64        `json:"size"`
+	RealSize        int64        `json:"real_size"`
+	Checksum        string       `json:"checksum"`
+	CreatedAt       string       `json:"created_at"`
+	ContainerFormat string       `json:"container_format"`
+	Tags            []TagDetails `json:"tags"`
+	Abrak           string       `json:"abrak"`
+	AbrakId         string       `json:"abrak_id"`
+	ImageType       string       `json:"image_type"`
 }
 
 type ImageDetails struct {
@@ -81,12 +81,50 @@ type Image struct {
 	requester *api.Requester
 }
 
+// NewImage - init communicator with Image
 func NewImage(ctx context.Context) *Image {
 	return &Image{
 		requester: ctx.Value(api.RequesterContext).(*api.Requester),
 	}
 }
 
+// Find - looking for an image by name
+func (i *Image) Find(region, name, imageType string) (any, error) {
+	images, err := i.List(region, imageType)
+	if err != nil {
+		return nil, err
+	}
+
+	imageName := strings.Split(name, "/")
+	if len(imageName) < 1 {
+		return nil, fmt.Errorf("invalid name")
+	}
+
+	switch images.(type) {
+	case []ImageDistributionDetails:
+		iGroup, iName := imageName[0], imageName[1]
+		for _, group := range images.([]ImageDistributionDetails) {
+			for _, image := range group.Images {
+				if strings.ToLower(image.Name) == iName && strings.ToLower(group.Name) == iGroup {
+					return &image, nil
+				}
+			}
+		}
+		return nil, fmt.Errorf("not found image %v", name)
+	case []ImageServerDetails:
+		iName := imageName[0]
+		for _, image := range images.([]ImageServerDetails) {
+			if iName == strings.ToLower(image.Name) {
+				return &image, nil
+			}
+		}
+		return nil, fmt.Errorf("not found image %v", name)
+	default:
+		return nil, fmt.Errorf("invalid image's type")
+	}
+}
+
+// List - return all images
 func (i *Image) List(region, imageType string) (any, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/images", ECCEndPoint, Version, region)
 
@@ -113,41 +151,7 @@ func (i *Image) List(region, imageType string) (any, error) {
 	return details, err
 }
 
-func (i *Image) Find(region, name, imageType string) (*string, error) {
-	images, err := i.List(region, imageType)
-	if err != nil {
-		return nil, err
-	}
-
-	imageName := strings.Split(name, "/")
-	if len(imageName) < 1 {
-		return nil, fmt.Errorf("invalid name")
-	}
-
-	switch images.(type) {
-	case []ImageDistributionDetails:
-		iGroup, iName := imageName[0], imageName[1]
-		for _, group := range images.([]ImageDistributionDetails) {
-			for _, image := range group.Images {
-				if strings.ToLower(image.Name) == iName && strings.ToLower(group.Name) == iGroup {
-					return &image.ID, nil
-				}
-			}
-		}
-		return nil, fmt.Errorf("not found image %v", name)
-	case []ImageServerDetails:
-		iName := imageName[0]
-		for _, image := range images.([]ImageServerDetails) {
-			if iName == strings.ToLower(image.Name) {
-				return &image.ID, nil
-			}
-		}
-		return nil, fmt.Errorf("not found image %v", name)
-	default:
-		return nil, fmt.Errorf("invalid image's type")
-	}
-}
-
+// ListMarketPlace - return all images at marketplace
 func (i *Image) ListMarketPlace(region string) ([]MarketPlaceDetail, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/images/marketplace", ECCEndPoint, Version, region)
 

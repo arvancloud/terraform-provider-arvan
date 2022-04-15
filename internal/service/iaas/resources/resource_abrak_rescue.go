@@ -1,4 +1,4 @@
-package iaas
+package resources
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakRename() *schema.Resource {
+func ResourceAbrakRescue() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceAbrakRenameCreate,
+		CreateContext: resourceAbrakRescueCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: resourceAbrakRenameUpdate,
+		UpdateContext: resourceAbrakRescueUpdate,
 		DeleteContext: helper.DummyResourceAction,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -32,18 +32,20 @@ func ResourceAbrakRename() *schema.Resource {
 				Required:    true,
 				Description: "uuid of abrak",
 			},
-			"new_name": {
-				Type:        schema.TypeString,
+			"enable": {
+				Type:        schema.TypeBool,
 				Required:    true,
-				Description: "new name of abrak",
+				Description: "enable rescue (false means un-rescue)",
 			},
 		},
 	}
 }
 
-func resourceAbrakRenameCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceAbrakRescueCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	var err error
+
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -55,13 +57,18 @@ func resourceAbrakRenameCreate(ctx context.Context, data *schema.ResourceData, m
 	}
 
 	id := data.Get("uuid").(string)
-	name := data.Get("new_name").(string)
 
-	err := c.Server.Actions.Rename(region, id, name)
+	enable := data.Get("enable").(bool)
+	if enable {
+		err = c.Server.Actions.Rescue(region, id)
+	} else {
+		err = c.Server.Actions.UnRescue(region, id)
+	}
+
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not rename server %v to %v", id, name),
+			Summary:  fmt.Sprintf("could not rescue/un-rescue server %v", id),
 		})
 		return errors
 	}
@@ -70,9 +77,9 @@ func resourceAbrakRenameCreate(ctx context.Context, data *schema.ResourceData, m
 	return errors
 }
 
-func resourceAbrakRenameUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	if data.HasChanges("new_name") {
-		return resourceAbrakRenameCreate(ctx, data, meta)
+func resourceAbrakRescueUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+	if data.HasChange("enable") {
+		return resourceAbrakRescueCreate(ctx, data, meta)
 	}
 	return nil
 }

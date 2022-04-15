@@ -1,4 +1,4 @@
-package iaas
+package datasources
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func DatasourceSecurityGroup() *schema.Resource {
+func DatasourceTag() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: datasourceSecurityGroupRead,
+		ReadContext: datasourceTagRead,
 		Schema: map[string]*schema.Schema{
 			"region": {
 				Type:         schema.TypeString,
@@ -23,35 +23,38 @@ func DatasourceSecurityGroup() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "name of security group",
+				Description: "name",
 			},
 		},
 	}
 }
 
-func datasourceSecurityGroupRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func datasourceTagRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "can not get region",
+			Summary:  "could not parse region",
 		})
 		return errors
 	}
 
 	name := data.Get("name").(string)
-	id, err := c.SecurityGroup.Find(region, name)
+	tag, err := c.Tag.Find(region, name)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("security group %v not found", name),
+			Summary:  fmt.Sprintf("Tag %v not found", name),
 		})
 		return errors
 	}
 
-	data.SetId(*id)
+	data.SetId(tag.ID)
+
+	// TODO: define other parameters above and make them Computed and set them here
+
 	return errors
 }

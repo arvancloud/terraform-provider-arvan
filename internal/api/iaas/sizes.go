@@ -39,12 +39,14 @@ type Sizes struct {
 	requester *api.Requester
 }
 
+// NewSizes - init communicator with Sizes
 func NewSizes(ctx context.Context) *Sizes {
 	return &Sizes{
 		requester: ctx.Value(api.RequesterContext).(*api.Requester),
 	}
 }
 
+// ListPlans - return all plans
 func (s *Sizes) ListPlans(region string) ([]PlanDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/sizes", ECCEndPoint, Version, region)
 

@@ -51,12 +51,12 @@ type ServerImage struct {
 }
 
 type ServerSecurityGroup struct {
-	ID          string              `json:"id"`
-	Description string              `json:"description"`
-	Name        string              `json:"name"`
-	ReadOnly    string              `json:"readonly"`
-	RealName    string              `json:"real_name"`
-	Rules       []SecurityGroupRule `json:"rules"`
+	ID          string                     `json:"id"`
+	Description string                     `json:"description"`
+	Name        string                     `json:"name"`
+	ReadOnly    string                     `json:"readonly"`
+	RealName    string                     `json:"real_name"`
+	Rules       []SecurityGroupRuleDetails `json:"rules"`
 }
 
 type ServerDetails struct {
@@ -72,7 +72,7 @@ type ServerDetails struct {
 	ArNext         string                      `json:"ar_next"`
 	SecurityGroups []ServerSecurityGroup       `json:"security_groups"`
 	Addresses      map[string][]*ServerAddress `json:"addresses"`
-	Tags           []Tag                       `json:"tags"`
+	Tags           []TagDetails                `json:"tags"`
 	HAEnabled      bool                        `json:"ha_enabled"`
 }
 
@@ -88,6 +88,7 @@ type Server struct {
 	Actions   *ServerActions
 }
 
+// NewServer - init communicator with Server
 func NewServer(ctx context.Context) *Server {
 	return &Server{
 		requester: ctx.Value(api.RequesterContext).(*api.Requester),
@@ -95,25 +96,8 @@ func NewServer(ctx context.Context) *Server {
 	}
 }
 
-func (s *Server) Read(region, id string) (*ServerDetails, error) {
-	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v", ECCEndPoint, Version, region, id)
-
-	data, err := s.requester.Read(endpoint, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	marshal, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	var details *ServerDetails
-	err = json.Unmarshal(marshal, &details)
-	return details, err
-}
-
-func (s *Server) Find(region, name string) (*string, error) {
+// Find - looking for a server by name
+func (s *Server) Find(region, name string) (*ServerDetails, error) {
 	servers, err := s.List(region)
 	if err != nil {
 		return nil, err
@@ -121,13 +105,14 @@ func (s *Server) Find(region, name string) (*string, error) {
 
 	for _, server := range servers {
 		if server.Name == name {
-			return &server.ID, nil
+			return &server, nil
 		}
 	}
 
 	return nil, fmt.Errorf("server %v not found", name)
 }
 
+// List - return all servers
 func (s *Server) List(region string) ([]ServerDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers", ECCEndPoint, Version, region)
 
@@ -146,6 +131,7 @@ func (s *Server) List(region string) ([]ServerDetails, error) {
 	return details, err
 }
 
+// Create - create a server
 func (s *Server) Create(region string, opts *ServerOpts) (*ServerDetails, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers", ECCEndPoint, Version, region)
 
@@ -164,12 +150,31 @@ func (s *Server) Create(region string, opts *ServerOpts) (*ServerDetails, error)
 	return details, err
 }
 
+// Read - get details of a server
+func (s *Server) Read(region, id string) (*ServerDetails, error) {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v", ECCEndPoint, Version, region, id)
+
+	data, err := s.requester.Read(endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	marshal, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	var details *ServerDetails
+	err = json.Unmarshal(marshal, &details)
+	return details, err
+}
+
+// Delete - delete a server
 func (s *Server) Delete(region, id string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v", ECCEndPoint, Version, region, id)
-	err := s.requester.Delete(endpoint, map[string]string{
+	return s.requester.Delete(endpoint, map[string]string{
 		"forceDelete": "true",
 	})
-	return err
 }
 
 type ServerOptions struct {
@@ -183,6 +188,7 @@ type ServerOptions struct {
 	NetworkId             string `json:"network_id"`
 }
 
+// Options - return a region options (default network and image)
 func (s *Server) Options(region string) (*ServerOptions, error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/options", ECCEndPoint, Version, region)
 

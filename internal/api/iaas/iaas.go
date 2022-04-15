@@ -18,34 +18,40 @@ var (
 	}
 )
 
-type Tag struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
 type IaaS struct {
 	FloatIP       *FloatIP
-	Network       *Network
-	Server        *Server
 	Image         *Image
-	Sizes         *Sizes
-	SecurityGroup *SecurityGroup
-	Volume        *Volume
+	Network       *Network
+	Port          *Port
+	Quota         *Quota
+	Ptr           *Ptr
 	Region        *Region
+	SSHKey        *SSHKey
+	SecurityGroup *SecurityGroup
+	Server        *Server
+	Sizes         *Sizes
+	Tag           *Tag
+	Volume        *Volume
 }
 
 func NewIaaS(server *Server, image *Image,
 	sizes *Sizes, network *Network,
 	securityGroup *SecurityGroup, volume *Volume,
-	floatIP *FloatIP, region *Region) *IaaS {
+	floatIP *FloatIP, region *Region, sshKey *SSHKey,
+	tag *Tag, port *Port, ptr *Ptr, quota *Quota) *IaaS {
 	return &IaaS{
-		Network:       network,
-		Server:        server,
-		Image:         image,
-		Sizes:         sizes,
-		SecurityGroup: securityGroup,
-		Volume:        volume,
 		FloatIP:       floatIP,
+		Image:         image,
+		Network:       network,
+		Port:          port,
+		Quota:         quota,
+		Ptr:           ptr,
 		Region:        region,
+		SSHKey:        sshKey,
+		SecurityGroup: securityGroup,
+		Server:        server,
+		Sizes:         sizes,
+		Tag:           tag,
+		Volume:        volume,
 	}
 }

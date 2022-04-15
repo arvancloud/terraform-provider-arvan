@@ -11,9 +11,10 @@ type Config struct {
 }
 
 type Client struct {
-	Iaas *iaas.IaaS
+	IaaS *iaas.IaaS
 }
 
+// NewClient - client for communicate with APIs
 func NewClient(cfg *Config) (*Client, error) {
 	var err error
 
@@ -30,7 +31,7 @@ func NewClient(cfg *Config) (*Client, error) {
 	}
 
 	return &Client{
-		Iaas: iaas.NewIaaS(
+		IaaS: iaas.NewIaaS(
 			iaas.NewServer(ctx),
 			iaas.NewImage(ctx),
 			iaas.NewSizes(ctx),
@@ -39,6 +40,11 @@ func NewClient(cfg *Config) (*Client, error) {
 			iaas.NewVolume(ctx),
 			iaas.NewFloatIP(ctx),
 			iaas.NewRegion(ctx),
+			iaas.NewSSHKey(ctx),
+			iaas.NewTag(ctx),
+			iaas.NewPort(ctx),
+			iaas.NewPtr(ctx),
+			iaas.NewQuota(ctx),
 		),
 	}, err
 }

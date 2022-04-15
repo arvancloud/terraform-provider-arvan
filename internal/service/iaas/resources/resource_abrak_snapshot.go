@@ -1,4 +1,4 @@
-package iaas
+package resources
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakShutDown() *schema.Resource {
+func ResourceAbrakSnapshot() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceAbrakShutDownCreate,
+		CreateContext: resourceAbrakSnapshotCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: helper.DummyResourceAction,
+		UpdateContext: resourceAbrakSnapshotUpdate,
 		DeleteContext: helper.DummyResourceAction,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -32,13 +32,18 @@ func ResourceAbrakShutDown() *schema.Resource {
 				Required:    true,
 				Description: "uuid of abrak",
 			},
+			"snapshot_name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "snapshot name of abrak",
+			},
 		},
 	}
 }
 
-func ResourceAbrakShutDownCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceAbrakSnapshotCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -50,15 +55,24 @@ func ResourceAbrakShutDownCreate(ctx context.Context, data *schema.ResourceData,
 	}
 
 	id := data.Get("uuid").(string)
-	err := c.Server.Actions.ShutDown(region, id)
+
+	snapshotName := data.Get("snapshot_name").(string)
+	err := c.Server.Actions.Snapshot(region, id, snapshotName)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not shutdown server %v", id),
+			Summary:  fmt.Sprintf("could not take snapshot server %v to %v", id, snapshotName),
 		})
 		return errors
 	}
 
 	data.SetId(id)
 	return errors
+}
+
+func resourceAbrakSnapshotUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+	if data.HasChanges("snapshot_name") {
+		return resourceAbrakSnapshotCreate(ctx, data, meta)
+	}
+	return nil
 }

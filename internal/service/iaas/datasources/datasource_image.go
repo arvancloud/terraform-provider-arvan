@@ -1,4 +1,4 @@
-package iaas
+package datasources
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func DatasourceVolume() *schema.Resource {
+func DatasourceImage() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: datasourceVolumeRead,
+		ReadContext: datasourceImageRead,
 		Schema: map[string]*schema.Schema{
 			"region": {
 				Type:         schema.TypeString,
@@ -20,18 +20,23 @@ func DatasourceVolume() *schema.Resource {
 				Description:  "region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"name": {
+			"type": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "name of volume",
+				Description: "type of image",
+			},
+			"name": {
+				Type:        schema.TypeBool,
+				Required:    true,
+				Description: "name of image",
 			},
 		},
 	}
 }
 
-func datasourceVolumeRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func datasourceImageRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -42,16 +47,23 @@ func datasourceVolumeRead(ctx context.Context, data *schema.ResourceData, meta a
 		return errors
 	}
 
-	name := data.Get("name").(string)
-	id, err := c.Network.Find(region, name)
+	imageName := data.Get("name").(string)
+	imageType := data.Get("type").(string)
+	image, err := c.Image.Find(region, imageName, imageType)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("network %v not found", name),
+			Summary:  fmt.Sprintf("image %v not found", imageName),
 		})
 		return errors
 	}
 
-	data.SetId(*id)
+	switch image.(type) {
+	case iaas.ImageDetails:
+		data.SetId(image.(iaas.ImageDetails).ID)
+	case iaas.ImageServerDetails:
+		data.SetId(image.(iaas.ImageServerDetails).ID)
+	}
+
 	return errors
 }

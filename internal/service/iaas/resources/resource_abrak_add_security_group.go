@@ -1,4 +1,4 @@
-package iaas
+package resources
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakRescue() *schema.Resource {
+func ResourceAbrakAddSecurityGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceAbrakRescueCreate,
+		CreateContext: resourceAbrakAddSecurityGroupCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: resourceAbrakRescueUpdate,
+		UpdateContext: resourceAbrakAddSecurityGroupUpdate,
 		DeleteContext: helper.DummyResourceAction,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -32,20 +32,18 @@ func ResourceAbrakRescue() *schema.Resource {
 				Required:    true,
 				Description: "uuid of abrak",
 			},
-			"enable": {
-				Type:        schema.TypeBool,
+			"security_group_uuid": {
+				Type:        schema.TypeString,
 				Required:    true,
-				Description: "enable rescue (false means un-rescue)",
+				Description: "uuid of security group",
 			},
 		},
 	}
 }
 
-func resourceAbrakRescueCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceAbrakAddSecurityGroupCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	var err error
-
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -58,17 +56,12 @@ func resourceAbrakRescueCreate(ctx context.Context, data *schema.ResourceData, m
 
 	id := data.Get("uuid").(string)
 
-	enable := data.Get("enable").(bool)
-	if enable {
-		err = c.Server.Actions.Rescue(region, id)
-	} else {
-		err = c.Server.Actions.UnRescue(region, id)
-	}
-
+	securityGroupId := data.Get("security_group_uuid").(string)
+	err := c.Server.Actions.AddSecurityGroup(region, id, securityGroupId)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not rescue/un-rescue server %v", id),
+			Summary:  fmt.Sprintf("could not add security group %v server %v", securityGroupId, id),
 		})
 		return errors
 	}
@@ -77,9 +70,9 @@ func resourceAbrakRescueCreate(ctx context.Context, data *schema.ResourceData, m
 	return errors
 }
 
-func resourceAbrakRescueUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	if data.HasChange("enable") {
-		return resourceAbrakRescueCreate(ctx, data, meta)
+func resourceAbrakAddSecurityGroupUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+	if data.HasChange("security_group_uuid") {
+		return resourceAbrakAddSecurityGroupCreate(ctx, data, meta)
 	}
 	return nil
 }

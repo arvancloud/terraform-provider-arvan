@@ -12,12 +12,14 @@ type ServerActions struct {
 	requester *api.Requester
 }
 
+// NewServerActions - init communicator with ServerActions
 func NewServerActions(ctx context.Context) *ServerActions {
 	return &ServerActions{
 		requester: ctx.Value(api.RequesterContext).(*api.Requester),
 	}
 }
 
+// Rename - rename the server
 func (s *ServerActions) Rename(region, id, newName string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/rename", ECCEndPoint, Version, region, id)
 
@@ -36,42 +38,49 @@ func (s *ServerActions) Rename(region, id, newName string) error {
 	return err
 }
 
+// ShutDown - shutdown a server
 func (s *ServerActions) ShutDown(region, id string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/power-off", ECCEndPoint, Version, region, id)
 	_, err := s.requester.Create(endpoint, nil, nil)
 	return err
 }
 
+// TurnOn - turn on a server
 func (s *ServerActions) TurnOn(region, id string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/power-on", ECCEndPoint, Version, region, id)
 	_, err := s.requester.Create(endpoint, nil, nil)
 	return err
 }
 
+// SoftReboot - apply soft reboot for a server
 func (s *ServerActions) SoftReboot(region, id string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/reboot", ECCEndPoint, Version, region, id)
 	_, err := s.requester.Create(endpoint, nil, nil)
 	return err
 }
 
+// HardReboot - apply hard reboot for a server
 func (s *ServerActions) HardReboot(region, id string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/hard-reboot", ECCEndPoint, Version, region, id)
 	_, err := s.requester.Create(endpoint, nil, nil)
 	return err
 }
 
+// Rescue - apply rescue on a server
 func (s *ServerActions) Rescue(region, id string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/rescue", ECCEndPoint, Version, region, id)
 	_, err := s.requester.Create(endpoint, nil, nil)
 	return err
 }
 
+// UnRescue - apply un-rescue on a server
 func (s *ServerActions) UnRescue(region, id string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/unrescue", ECCEndPoint, Version, region, id)
 	_, err := s.requester.Create(endpoint, nil, nil)
 	return err
 }
 
+// Rebuild - rebuild a server from an image
 func (s *ServerActions) Rebuild(region, id, imageId string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/rebuild", ECCEndPoint, Version, region, id)
 
@@ -90,6 +99,7 @@ func (s *ServerActions) Rebuild(region, id, imageId string) error {
 	return err
 }
 
+// ChangeFlavor - change flavor of a server
 func (s *ServerActions) ChangeFlavor(region, id, flavorId string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/resize", ECCEndPoint, Version, region, id)
 
@@ -108,6 +118,7 @@ func (s *ServerActions) ChangeFlavor(region, id, flavorId string) error {
 	return err
 }
 
+// ChangeDiskSize - change disk size of a server
 func (s *ServerActions) ChangeDiskSize(region, id string, size int) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/resizeRoot", ECCEndPoint, Version, region, id)
 
@@ -126,6 +137,7 @@ func (s *ServerActions) ChangeDiskSize(region, id string, size int) error {
 	return err
 }
 
+// Snapshot - create a snapshot from a server
 func (s *ServerActions) Snapshot(region, id, name string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/snapshot", ECCEndPoint, Version, region, id)
 
@@ -144,6 +156,7 @@ func (s *ServerActions) Snapshot(region, id, name string) error {
 	return err
 }
 
+// AddSecurityGroup - assign a securityGroup to a server
 func (s *ServerActions) AddSecurityGroup(region, id, securityGroupId string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/add-security-group", ECCEndPoint, Version, region, id)
 
@@ -162,6 +175,7 @@ func (s *ServerActions) AddSecurityGroup(region, id, securityGroupId string) err
 	return err
 }
 
+// RemoveSecurityGroup - remove a securityGroup from a server
 func (s *ServerActions) RemoveSecurityGroup(region, id, securityGroupId string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/remove-security-group", ECCEndPoint, Version, region, id)
 
@@ -180,12 +194,14 @@ func (s *ServerActions) RemoveSecurityGroup(region, id, securityGroupId string) 
 	return err
 }
 
+// ChangePublicIP - change public-ip of a server
 func (s *ServerActions) ChangePublicIP(region, id string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/change-public-ip", ECCEndPoint, Version, region, id)
 	_, err := s.requester.Create(endpoint, nil, nil)
 	return err
 }
 
+// ResetRootPassword - reset root password of a server
 func (s *ServerActions) ResetRootPassword(region, id string) error {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/reset-root-password", ECCEndPoint, Version, region, id)
 	_, err := s.requester.Create(endpoint, nil, nil)

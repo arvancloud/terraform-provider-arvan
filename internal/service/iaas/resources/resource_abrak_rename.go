@@ -1,4 +1,4 @@
-package iaas
+package resources
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakResetRootPassword() *schema.Resource {
+func ResourceAbrakRename() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceAbrakResetRootPasswordCreate,
+		CreateContext: resourceAbrakRenameCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: helper.DummyResourceAction,
+		UpdateContext: resourceAbrakRenameUpdate,
 		DeleteContext: helper.DummyResourceAction,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -32,13 +32,18 @@ func ResourceAbrakResetRootPassword() *schema.Resource {
 				Required:    true,
 				Description: "uuid of abrak",
 			},
+			"new_name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "new name of abrak",
+			},
 		},
 	}
 }
 
-func ResourceAbrakResetRootPasswordCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceAbrakRenameCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
 	var errors diag.Diagnostics
-	c := meta.(*client.Client).Iaas
+	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -50,16 +55,24 @@ func ResourceAbrakResetRootPasswordCreate(ctx context.Context, data *schema.Reso
 	}
 
 	id := data.Get("uuid").(string)
+	name := data.Get("new_name").(string)
 
-	err := c.Server.Actions.ResetRootPassword(region, id)
+	err := c.Server.Actions.Rename(region, id, name)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not shutdown server %v", id),
+			Summary:  fmt.Sprintf("could not rename server %v to %v", id, name),
 		})
 		return errors
 	}
 
 	data.SetId(id)
 	return errors
+}
+
+func resourceAbrakRenameUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
+	if data.HasChanges("new_name") {
+		return resourceAbrakRenameCreate(ctx, data, meta)
+	}
+	return nil
 }

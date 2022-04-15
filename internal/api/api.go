@@ -32,6 +32,7 @@ type Requester struct {
 	HttpClient *http.Client
 }
 
+// NewRequester - using this for generating our requests
 func NewRequester(apiKey string) *Requester {
 	return &Requester{
 		HttpClient: &http.Client{
@@ -41,6 +42,7 @@ func NewRequester(apiKey string) *Requester {
 	}
 }
 
+// CheckAuthenticate - to check authenticate
 func (r *Requester) CheckAuthenticate() error {
 	_, err := r.DoRequest("GET", AuthEndpoint, nil)
 	if err != nil {
@@ -49,10 +51,12 @@ func (r *Requester) CheckAuthenticate() error {
 	return nil
 }
 
+// DoRequest - make a request without queries
 func (r *Requester) DoRequest(method, endpoint string, data io.Reader) ([]byte, error) {
 	return r.DoRequestWithQuery(method, endpoint, data, nil)
 }
 
+// DoRequestWithQuery - make a request via its queries
 func (r *Requester) DoRequestWithQuery(method, endpoint string, data io.Reader,
 	query map[string]string) ([]byte, error) {
 	url := fmt.Sprintf("%v/%v", BasePath, endpoint)
@@ -91,18 +95,27 @@ func (r *Requester) DoRequestWithQuery(method, endpoint string, data io.Reader,
 	return body, err
 }
 
+// Create - make a POST request
 func (r *Requester) Create(endpoint string, opts any, queries map[string]string) (any, error) {
 	return r.Custom("POST", endpoint, opts, queries)
 }
 
+// Read - make a GET Request
 func (r *Requester) Read(endpoint string, queries map[string]string) (any, error) {
 	return r.Custom("GET", endpoint, nil, queries)
 }
 
-func (r *Requester) Update(endpoint string, opts any, queries map[string]string) (any, error) {
+// Patch - make a PATCH request
+func (r *Requester) Patch(endpoint string, opts any, queries map[string]string) (any, error) {
 	return r.Custom("PATCH", endpoint, opts, queries)
 }
 
+// Put - make PUT request
+func (r *Requester) Put(endpoint string, opts any, queries map[string]string) (any, error) {
+	return r.Custom("PUT", endpoint, opts, queries)
+}
+
+// Delete - make DELETE request
 func (r *Requester) Delete(endpoint string, queries map[string]string) error {
 	var err error
 	if queries != nil {
@@ -113,10 +126,12 @@ func (r *Requester) Delete(endpoint string, queries map[string]string) error {
 	return err
 }
 
+// List - like Read but for List purpose
 func (r *Requester) List(endpoint string, queries map[string]string) (any, error) {
 	return r.Read(endpoint, queries)
 }
 
+// Custom - general purpose maker for request
 func (r *Requester) Custom(method, endpoint string, opts any, queries map[string]string) (any, error) {
 	var err error
 	var response, body []byte
