@@ -27,10 +27,11 @@ func ResourceAbrakRename() *schema.Resource {
 				Description:  "region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"uuid": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "uuid of abrak",
+			"abrak_uuid": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "uuid of abrak",
+				ValidateFunc: validation.IsUUID,
 			},
 			"new_name": {
 				Type:        schema.TypeString,
@@ -41,8 +42,7 @@ func ResourceAbrakRename() *schema.Resource {
 	}
 }
 
-func resourceAbrakRenameCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func resourceAbrakRenameCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -54,19 +54,19 @@ func resourceAbrakRenameCreate(ctx context.Context, data *schema.ResourceData, m
 		return errors
 	}
 
-	id := data.Get("uuid").(string)
+	uuid := data.Get("abrak_uuid").(string)
 	name := data.Get("new_name").(string)
 
-	err := c.Server.Actions.Rename(region, id, name)
+	err := c.Server.Actions.Rename(region, uuid, name)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not rename server %v to %v", id, name),
+			Summary:  fmt.Sprintf("could not rename server %v to %v", uuid, name),
 		})
 		return errors
 	}
 
-	data.SetId(id)
+	data.SetId(uuid)
 	return errors
 }
 

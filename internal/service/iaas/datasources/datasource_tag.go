@@ -23,14 +23,13 @@ func DatasourceTag() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "name",
+				Description: "name of tag",
 			},
 		},
 	}
 }
 
-func datasourceTagRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func datasourceTagRead(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -53,8 +52,5 @@ func datasourceTagRead(ctx context.Context, data *schema.ResourceData, meta any)
 	}
 
 	data.SetId(tag.ID)
-
-	// TODO: define other parameters above and make them Computed and set them here
-
 	return errors
 }

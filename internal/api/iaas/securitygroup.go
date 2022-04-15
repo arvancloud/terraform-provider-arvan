@@ -11,7 +11,19 @@ const (
 	DefaultSecurityGroup = "arDefault"
 )
 
-type SecurityGroupRuleDetails struct {
+const (
+	IngressDirection = "ingress"
+	EgressDirection  = "egress"
+)
+
+var (
+	SupportedDirections = []string{
+		IngressDirection,
+		EgressDirection,
+	}
+)
+
+type RuleDetails struct {
 	ID          string `json:"id"`
 	CreatedAt   string `json:"created_at"`
 	UpdatedAt   string `json:"updated_at"`
@@ -20,8 +32,8 @@ type SecurityGroupRuleDetails struct {
 	EtherType   string `json:"ether_type"`
 	GroupID     string `json:"group_id"`
 	IP          string `json:"ip"`
-	PortStart   int32  `json:"port_start"`
-	PortEnd     int32  `json:"port_end"`
+	PortStart   int    `json:"port_start"`
+	PortEnd     int    `json:"port_end"`
 	Protocol    string `json:"protocol"`
 }
 
@@ -32,14 +44,14 @@ type SecurityGroupAbrak struct {
 }
 
 type SecurityGroupDetails struct {
-	Abraks      []SecurityGroupAbrak       `json:"abraks"`
-	Description string                     `json:"description"`
-	ID          string                     `json:"id"`
-	Name        string                     `json:"name"`
-	ReadOnly    bool                       `json:"readonly"`
-	RealName    string                     `json:"real_name"`
-	Rules       []SecurityGroupRuleDetails `json:"rules"`
-	Tags        []TagDetails               `json:"tags"`
+	ID          string               `json:"id"`
+	Name        string               `json:"name"`
+	Abraks      []SecurityGroupAbrak `json:"abraks"`
+	Description string               `json:"description"`
+	ReadOnly    bool                 `json:"readonly"`
+	RealName    string               `json:"real_name"`
+	Rules       []RuleDetails        `json:"rules"`
+	Tags        []TagDetails         `json:"tags"`
 }
 
 type SecurityGroupOpts struct {
@@ -68,7 +80,7 @@ func NewSecurityGroup(ctx context.Context) *SecurityGroup {
 }
 
 // List - return all securityGroups
-func (s *SecurityGroup) List(region string) ([]SecurityGroupDetails, error) {
+func (s *SecurityGroup) List(region string) (details []SecurityGroupDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/securities", ECCEndPoint, Version, region)
 
 	data, err := s.requester.List(endpoint, nil)
@@ -81,7 +93,6 @@ func (s *SecurityGroup) List(region string) ([]SecurityGroupDetails, error) {
 		return nil, err
 	}
 
-	var details []SecurityGroupDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
@@ -101,7 +112,7 @@ func (s *SecurityGroup) Find(region, name string) (*SecurityGroupDetails, error)
 }
 
 // Create - create a securityGroup
-func (s *SecurityGroup) Create(region string, opts *SecurityGroupOpts) (*SecurityGroupDetails, error) {
+func (s *SecurityGroup) Create(region string, opts *SecurityGroupOpts) (details *SecurityGroupDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/securities", ECCEndPoint, Version, region)
 
 	data, err := s.requester.Create(endpoint, opts, nil)
@@ -114,9 +125,15 @@ func (s *SecurityGroup) Create(region string, opts *SecurityGroupOpts) (*Securit
 		return nil, err
 	}
 
-	var details *SecurityGroupDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
+}
+
+// CreateCdn - create a securityGroup
+func (s *SecurityGroup) CreateCdn(region string) (err error) {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/securities/cdn", ECCEndPoint, Version, region)
+	_, err = s.requester.DoRequest("POST", endpoint, nil)
+	return err
 }
 
 // Delete - delete a securityGroup
@@ -125,8 +142,8 @@ func (s *SecurityGroup) Delete(region, id string) error {
 	return s.requester.Delete(endpoint, nil)
 }
 
-// ListRules - return all rules of a securityGroups
-func (s *SecurityGroup) ListRules(region, id string) ([]SecurityGroupRuleDetails, error) {
+// Read - get details of a securityGroup
+func (s *SecurityGroup) Read(region, id string) (details *SecurityGroupDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/securities/security-rules/%v", ECCEndPoint, Version, region, id)
 
 	data, err := s.requester.List(endpoint, nil)
@@ -139,28 +156,15 @@ func (s *SecurityGroup) ListRules(region, id string) ([]SecurityGroupRuleDetails
 		return nil, err
 	}
 
-	var details []SecurityGroupRuleDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
 
 // CreateRule - create a rule for a securityGroup
-func (s *SecurityGroup) CreateRule(region, id string, opts *SecurityGroupRuleDetails) (*SecurityGroupDetails, error) {
+func (s *SecurityGroup) CreateRule(region, id string, opts *SecurityGroupRuleOpts) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/securities/security-rules/%v", ECCEndPoint, Version, region, id)
-
-	data, err := s.requester.Create(endpoint, opts, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	marshal, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	var details *SecurityGroupDetails
-	err = json.Unmarshal(marshal, &details)
-	return details, err
+	_, err = s.requester.Create(endpoint, opts, nil)
+	return err
 }
 
 // DeleteRule - delete rule of a securityGroup

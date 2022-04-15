@@ -27,10 +27,11 @@ func ResourceAbrakRebuild() *schema.Resource {
 				Description:  "region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"uuid": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "uuid of abrak",
+			"abrak_uuid": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "uuid of abrak",
+				ValidateFunc: validation.IsUUID,
 			},
 			"image_uuid": {
 				Type:        schema.TypeString,
@@ -41,8 +42,7 @@ func ResourceAbrakRebuild() *schema.Resource {
 	}
 }
 
-func resourceAbrakRebuildCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func resourceAbrakRebuildCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -54,19 +54,19 @@ func resourceAbrakRebuildCreate(ctx context.Context, data *schema.ResourceData, 
 		return errors
 	}
 
-	id := data.Get("uuid").(string)
+	uuid := data.Get("abrak_uuid").(string)
 
 	imageUuid := data.Get("image_uuid").(string)
-	err := c.Server.Actions.Rebuild(region, id, imageUuid)
+	err := c.Server.Actions.Rebuild(region, uuid, imageUuid)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not rebuild server %v", id),
+			Summary:  fmt.Sprintf("could not rebuild server %v", uuid),
 		})
 		return errors
 	}
 
-	data.SetId(id)
+	data.SetId(uuid)
 	return errors
 }
 

@@ -27,22 +27,23 @@ func ResourceAbrakRemoveSecurityGroup() *schema.Resource {
 				Description:  "region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"uuid": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "uuid of abrak",
+			"abrak_uuid": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "uuid of abrak",
+				ValidateFunc: validation.IsUUID,
 			},
 			"security_group_uuid": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "uuid of security group",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "uuid of security group",
+				ValidateFunc: validation.IsUUID,
 			},
 		},
 	}
 }
 
-func resourceAbrakRemoveSecurityGroupCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func resourceAbrakRemoveSecurityGroupCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -54,19 +55,19 @@ func resourceAbrakRemoveSecurityGroupCreate(ctx context.Context, data *schema.Re
 		return errors
 	}
 
-	id := data.Get("uuid").(string)
+	uuid := data.Get("abrak_uuid").(string)
 
 	securityGroupId := data.Get("security_group_uuid").(string)
-	err := c.Server.Actions.RemoveSecurityGroup(region, id, securityGroupId)
+	err := c.Server.Actions.RemoveSecurityGroup(region, uuid, securityGroupId)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not remove security group %v server %v", securityGroupId, id),
+			Summary:  fmt.Sprintf("could not remove security group %v server %v", securityGroupId, uuid),
 		})
 		return errors
 	}
 
-	data.SetId(id)
+	data.SetId(uuid)
 	return errors
 }
 

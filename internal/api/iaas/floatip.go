@@ -49,7 +49,7 @@ func NewFloatIP(ctx context.Context) *FloatIP {
 }
 
 // List - return all floatips
-func (f *FloatIP) List(region string) ([]FloatIPDetails, error) {
+func (f *FloatIP) List(region string) (details []FloatIPDetails, err error) {
 
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/float-ips", ECCEndPoint, Version, region)
 
@@ -63,13 +63,12 @@ func (f *FloatIP) List(region string) ([]FloatIPDetails, error) {
 		return nil, err
 	}
 
-	var details []FloatIPDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
 
 // Create - create a floatip
-func (f *FloatIP) Create(region string, opts *FloatIPOpts) (*FloatIPDetails, error) {
+func (f *FloatIP) Create(region string, opts *FloatIPOpts) (details *FloatIPDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/float-ips", ECCEndPoint, Version, region)
 
 	data, err := f.requester.Create(endpoint, opts, nil)
@@ -82,7 +81,6 @@ func (f *FloatIP) Create(region string, opts *FloatIPOpts) (*FloatIPDetails, err
 		return nil, err
 	}
 
-	var details *FloatIPDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
@@ -94,15 +92,15 @@ func (f *FloatIP) Delete(region, id string) error {
 }
 
 // Attach - attach a floatip to a server
-func (f *FloatIP) Attach(region, id string, opts *FloatIPAttachOpts) error {
+func (f *FloatIP) Attach(region, id string, opts *FloatIPAttachOpts) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/float-ip/%v/attach", ECCEndPoint, Version, region, id)
-	_, err := f.requester.Patch(endpoint, opts, nil)
+	_, err = f.requester.Patch(endpoint, opts, nil)
 	return err
 }
 
 // Detach - attach a floatip from a server
-func (f *FloatIP) Detach(region string, opts FloatIPDetachOpts) error {
+func (f *FloatIP) Detach(region string, opts FloatIPDetachOpts) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/float-ip/detach", ECCEndPoint, Version, region)
-	_, err := f.requester.Patch(endpoint, opts, nil)
+	_, err = f.requester.Patch(endpoint, opts, nil)
 	return err
 }

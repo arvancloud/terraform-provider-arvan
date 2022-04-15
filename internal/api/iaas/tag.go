@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ValidTagTypes = []string{
+	SupportedTagTypes = []string{
 		"server",
 		"network",
 		"image",
@@ -18,7 +18,7 @@ var (
 	}
 )
 
-type ReplaceTagOpts struct {
+type TagReplaceOpts struct {
 	InstanceList []string `json:"instance_list"`
 	TagList      []string `json:"tag_list"`
 	InstanceType string   `json:"instance_type"`
@@ -70,7 +70,7 @@ func (t *Tag) Find(region, name string) (*TagDetails, error) {
 }
 
 // List - return all tags
-func (t *Tag) List(region string) ([]TagDetails, error) {
+func (t *Tag) List(region string) (details []TagDetails, err error) {
 
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/tags", ECCEndPoint, Version, region)
 
@@ -84,14 +84,12 @@ func (t *Tag) List(region string) ([]TagDetails, error) {
 		return nil, err
 	}
 
-	var details []TagDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
 
 // Create - create a tag
-func (t *Tag) Create(region string, opts *TagOpts) (*TagDetails, error) {
-
+func (t *Tag) Create(region string, opts *TagOpts) (details *TagDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/tags", ECCEndPoint, Version, region)
 
 	data, err := t.requester.Create(endpoint, opts, nil)
@@ -104,7 +102,6 @@ func (t *Tag) Create(region string, opts *TagOpts) (*TagDetails, error) {
 		return nil, err
 	}
 
-	var details *TagDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
@@ -116,7 +113,7 @@ func (t *Tag) Delete(region, id string) error {
 }
 
 // Update - edit a tag
-func (t *Tag) Update(region, id string, opts *TagUpdateOpts) (*TagDetails, error) {
+func (t *Tag) Update(region, id string, opts *TagUpdateOpts) (details *TagDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/tags/%v", ECCEndPoint, Version, region, id)
 
 	data, err := t.requester.Put(endpoint, opts, nil)
@@ -129,28 +126,27 @@ func (t *Tag) Update(region, id string, opts *TagUpdateOpts) (*TagDetails, error
 		return nil, err
 	}
 
-	var details *TagDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
 
 // Attach - attach tag to an instance
-func (t *Tag) Attach(region string, opts *TagAttachmentOpts) error {
-	endpoint := fmt.Sprintf("/%v/%v/regions/%v/tags/attach", ECCEndPoint, Version, region)
-	_, err := t.requester.Create(endpoint, opts, nil)
+func (t *Tag) Attach(region, id string, opts *TagAttachmentOpts) (err error) {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/tags/%v/attach", ECCEndPoint, Version, region, id)
+	_, err = t.requester.Create(endpoint, opts, nil)
 	return err
 }
 
 // Detach - detach tag from an instance
-func (t *Tag) Detach(region string, opts *TagAttachmentOpts) error {
-	endpoint := fmt.Sprintf("/%v/%v/regions/%v/tags/detach", ECCEndPoint, Version, region)
-	_, err := t.requester.Create(endpoint, opts, nil)
+func (t *Tag) Detach(region, id string, opts *TagAttachmentOpts) (err error) {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/tags/%v/detach", ECCEndPoint, Version, region, id)
+	_, err = t.requester.Create(endpoint, opts, nil)
 	return err
 }
 
 // Replace - replace a list of tags with instance list (for a list of instances)
-func (t *Tag) Replace(region string, opts *ReplaceTagOpts) error {
+func (t *Tag) Replace(region string, opts *TagReplaceOpts) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/tags/batch", ECCEndPoint, Version, region)
-	_, err := t.requester.Create(endpoint, opts, nil)
+	_, err = t.requester.Create(endpoint, opts, nil)
 	return err
 }

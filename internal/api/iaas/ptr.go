@@ -27,7 +27,7 @@ func NewPtr(ctx context.Context) *Ptr {
 }
 
 // Create - create a ptr
-func (p *Ptr) Create(region string, opts *PtrOpts) (*PtrDetails, error) {
+func (p *Ptr) Create(region string, opts *PtrOpts) (details *PtrDetails, err error) {
 
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/ptr", ECCEndPoint, Version, region)
 
@@ -41,7 +41,6 @@ func (p *Ptr) Create(region string, opts *PtrOpts) (*PtrDetails, error) {
 		return nil, err
 	}
 
-	var details *PtrDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }

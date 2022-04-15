@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceSSHKey() *schema.Resource {
+func ResourceSecurityGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceSSHKeyCreate,
+		CreateContext: resourceSecurityGroupCreate,
 		ReadContext:   helper.DummyResourceAction,
 		UpdateContext: helper.DummyResourceAction,
-		DeleteContext: resourceSSHKeyDelete,
+		DeleteContext: resourceSecurityGroupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -30,20 +30,23 @@ func ResourceSSHKey() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "name of ssh-key",
+				Description: "name of security group",
 			},
-			"public_key": {
+			"description": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "public key",
+				Description: "description of security group",
+			},
+			"real_name": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "real name of security group",
 			},
 		},
 	}
 }
 
-func resourceSSHKeyCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
-
+func resourceSecurityGroupCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -55,25 +58,24 @@ func resourceSSHKeyCreate(ctx context.Context, data *schema.ResourceData, meta a
 		return errors
 	}
 
-	// SSHKey Options
-	SSHKey := &iaas.SSHKeyOpts{
-		Name:      data.Get("name").(string),
-		PublicKey: data.Get("public_key").(string),
+	// SecurityGroup Options
+	SecurityGroup := &iaas.SecurityGroupOpts{
+		Name:        data.Get("name").(string),
+		Description: data.Get("description").(string),
 	}
 
-	response, err := c.SSHKey.Create(region, SSHKey)
+	response, err := c.SecurityGroup.Create(region, SecurityGroup)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	data.SetId(fmt.Sprint(response.Name))
+	data.SetId(fmt.Sprint(response.ID))
 	return errors
 }
 
-func resourceSSHKeyDelete(_ context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
-
+func resourceSecurityGroupDelete(_ context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
+
 	region, ok := data.Get("region").(string)
 	if !ok {
 		errors = append(errors, diag.Diagnostic{
@@ -83,11 +85,11 @@ func resourceSSHKeyDelete(_ context.Context, data *schema.ResourceData, meta any
 		return errors
 	}
 
-	err := c.SSHKey.Delete(region, data.Id())
+	err := c.SecurityGroup.Delete(region, data.Id())
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("can not delete SSHKey %v", data.Id()),
+			Summary:  fmt.Sprintf("can not delete SecurityGroup %v", data.Id()),
 		})
 		return errors
 	}

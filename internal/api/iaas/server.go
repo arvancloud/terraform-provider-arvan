@@ -51,12 +51,12 @@ type ServerImage struct {
 }
 
 type ServerSecurityGroup struct {
-	ID          string                     `json:"id"`
-	Description string                     `json:"description"`
-	Name        string                     `json:"name"`
-	ReadOnly    string                     `json:"readonly"`
-	RealName    string                     `json:"real_name"`
-	Rules       []SecurityGroupRuleDetails `json:"rules"`
+	ID          string        `json:"id"`
+	Description string        `json:"description"`
+	Name        string        `json:"name"`
+	ReadOnly    string        `json:"readonly"`
+	RealName    string        `json:"real_name"`
+	Rules       []RuleDetails `json:"rules"`
 }
 
 type ServerDetails struct {
@@ -113,7 +113,7 @@ func (s *Server) Find(region, name string) (*ServerDetails, error) {
 }
 
 // List - return all servers
-func (s *Server) List(region string) ([]ServerDetails, error) {
+func (s *Server) List(region string) (details []ServerDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers", ECCEndPoint, Version, region)
 
 	data, err := s.requester.List(endpoint, nil)
@@ -126,13 +126,12 @@ func (s *Server) List(region string) ([]ServerDetails, error) {
 		return nil, err
 	}
 
-	var details []ServerDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
 
 // Create - create a server
-func (s *Server) Create(region string, opts *ServerOpts) (*ServerDetails, error) {
+func (s *Server) Create(region string, opts *ServerOpts) (details *ServerDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers", ECCEndPoint, Version, region)
 
 	data, err := s.requester.Create(endpoint, opts, nil)
@@ -145,13 +144,12 @@ func (s *Server) Create(region string, opts *ServerOpts) (*ServerDetails, error)
 		return nil, err
 	}
 
-	var details *ServerDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
 
 // Read - get details of a server
-func (s *Server) Read(region, id string) (*ServerDetails, error) {
+func (s *Server) Read(region, id string) (details *ServerDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v", ECCEndPoint, Version, region, id)
 
 	data, err := s.requester.Read(endpoint, nil)
@@ -164,7 +162,6 @@ func (s *Server) Read(region, id string) (*ServerDetails, error) {
 		return nil, err
 	}
 
-	var details *ServerDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
@@ -189,7 +186,7 @@ type ServerOptions struct {
 }
 
 // Options - return a region options (default network and image)
-func (s *Server) Options(region string) (*ServerOptions, error) {
+func (s *Server) Options(region string) (details *ServerOptions, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/options", ECCEndPoint, Version, region)
 
 	data, err := s.requester.Read(endpoint, nil)
@@ -202,7 +199,6 @@ func (s *Server) Options(region string) (*ServerOptions, error) {
 		return nil, err
 	}
 
-	var details *ServerOptions
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }

@@ -25,12 +25,50 @@ func DatasourceSecurityGroup() *schema.Resource {
 				Required:    true,
 				Description: "name of security group",
 			},
+			"description": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "description of security group",
+			},
+			"real_name": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "real name of security group",
+			},
+			"rules": {
+				Type:        schema.TypeList,
+				Computed:    true,
+				Description: "real name of security group",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"description": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "description of rule",
+						},
+						"direction": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "direction of rule",
+						},
+						"ip": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "ip of rule",
+						},
+						"protocol": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "ip of rule",
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
-func datasourceSecurityGroupRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func datasourceSecurityGroupRead(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -53,5 +91,11 @@ func datasourceSecurityGroupRead(ctx context.Context, data *schema.ResourceData,
 	}
 
 	data.SetId(securityGroup.ID)
+
+	data.Set("description", data.Get("description").(string))
+	data.Set("real_name", data.Get("real_name").(string))
+
+	// TODO: we have to complete the variables
+
 	return errors
 }

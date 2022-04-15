@@ -27,10 +27,11 @@ func ResourceAbrakChangeDiskSize() *schema.Resource {
 				Description:  "region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"uuid": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "uuid of abrak",
+			"abrak_uuid": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "uuid of abrak",
+				ValidateFunc: validation.IsUUID,
 			},
 			"size": {
 				Type:        schema.TypeInt,
@@ -41,8 +42,7 @@ func ResourceAbrakChangeDiskSize() *schema.Resource {
 	}
 }
 
-func resourceAbrakChangeDiskSizeCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func resourceAbrakChangeDiskSizeCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -54,19 +54,19 @@ func resourceAbrakChangeDiskSizeCreate(ctx context.Context, data *schema.Resourc
 		return errors
 	}
 
-	id := data.Get("uuid").(string)
+	uuid := data.Get("abrak_uuid").(string)
 
 	size := data.Get("size").(int)
-	err := c.Server.Actions.ChangeDiskSize(region, id, size)
+	err := c.Server.Actions.ChangeDiskSize(region, uuid, size)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not rename server %v to %v", id, size),
+			Summary:  fmt.Sprintf("could not change size of server %v to %v", uuid, size),
 		})
 		return errors
 	}
 
-	data.SetId(id)
+	data.SetId(uuid)
 	return errors
 }
 

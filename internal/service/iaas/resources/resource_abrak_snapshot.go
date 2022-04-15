@@ -27,10 +27,11 @@ func ResourceAbrakSnapshot() *schema.Resource {
 				Description:  "region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"uuid": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "uuid of abrak",
+			"abrak_uuid": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "uuid of abrak",
+				ValidateFunc: validation.IsUUID,
 			},
 			"snapshot_name": {
 				Type:        schema.TypeString,
@@ -41,8 +42,7 @@ func ResourceAbrakSnapshot() *schema.Resource {
 	}
 }
 
-func resourceAbrakSnapshotCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func resourceAbrakSnapshotCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -54,19 +54,19 @@ func resourceAbrakSnapshotCreate(ctx context.Context, data *schema.ResourceData,
 		return errors
 	}
 
-	id := data.Get("uuid").(string)
+	uuid := data.Get("abrak_uuid").(string)
 
 	snapshotName := data.Get("snapshot_name").(string)
-	err := c.Server.Actions.Snapshot(region, id, snapshotName)
+	err := c.Server.Actions.Snapshot(region, uuid, snapshotName)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not take snapshot server %v to %v", id, snapshotName),
+			Summary:  fmt.Sprintf("could not take snapshot server %v to %v", uuid, snapshotName),
 		})
 		return errors
 	}
 
-	data.SetId(id)
+	data.SetId(uuid)
 	return errors
 }
 

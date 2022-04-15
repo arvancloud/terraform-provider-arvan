@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakResetRootPassword() *schema.Resource {
+func ResourcePtr() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceAbrakResetRootPasswordCreate,
+		CreateContext: resourcePtrCreate,
 		ReadContext:   helper.DummyResourceAction,
 		UpdateContext: helper.DummyResourceAction,
-		DeleteContext: helper.DummyResourceAction,
+		DeleteContext: resourcePtrDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -24,20 +24,52 @@ func ResourceAbrakResetRootPassword() *schema.Resource {
 			"region": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "region code",
+				Description:  "Region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"uuid": {
+			"ip": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "ip address",
+				ValidateFunc: validation.IsIPv4Address,
+			},
+			"domain": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "uuid of abrak",
+				Description: "domain",
 			},
 		},
 	}
 }
 
-func ResourceAbrakResetRootPasswordCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func resourcePtrCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
+	c := meta.(*client.Client).IaaS
+
+	region, ok := data.Get("region").(string)
+	if !ok {
+		errors = append(errors, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "could not parse region",
+		})
+		return errors
+	}
+
+	// Ptr Options
+	Ptr := &iaas.PtrOpts{
+		IP:     data.Get("ip").(string),
+		Domain: data.Get("domain").(string),
+	}
+
+	_, err := c.Ptr.Create(region, Ptr)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	data.SetId(fmt.Sprint(Ptr.IP))
+	return errors
+}
+
+func resourcePtrDelete(_ context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -49,17 +81,14 @@ func ResourceAbrakResetRootPasswordCreate(ctx context.Context, data *schema.Reso
 		return errors
 	}
 
-	id := data.Get("uuid").(string)
-
-	err := c.Server.Actions.ResetRootPassword(region, id)
+	err := c.Ptr.Delete(region, data.Id())
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not shutdown server %v", id),
+			Summary:  fmt.Sprintf("can not delete Ptr %v", data.Id()),
 		})
 		return errors
 	}
 
-	data.SetId(id)
-	return errors
+	return nil
 }

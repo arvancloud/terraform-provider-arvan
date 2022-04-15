@@ -27,10 +27,11 @@ func ResourceAbrakChangeFlavor() *schema.Resource {
 				Description:  "region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"uuid": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "uuid of abrak",
+			"abrak_uuid": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "uuid of abrak",
+				ValidateFunc: validation.IsUUID,
 			},
 			"flavor": {
 				Type:        schema.TypeString,
@@ -41,8 +42,7 @@ func ResourceAbrakChangeFlavor() *schema.Resource {
 	}
 }
 
-func resourceAbrakChangeFlavorCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func resourceAbrakChangeFlavorCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -54,19 +54,19 @@ func resourceAbrakChangeFlavorCreate(ctx context.Context, data *schema.ResourceD
 		return errors
 	}
 
-	id := data.Get("uuid").(string)
+	uuid := data.Get("abrak_uuid").(string)
 
 	flavor := data.Get("flavor").(string)
-	err := c.Server.Actions.ChangeFlavor(region, id, flavor)
+	err := c.Server.Actions.ChangeFlavor(region, uuid, flavor)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not change flavor of server %v to %v", id, flavor),
+			Summary:  fmt.Sprintf("could not change flavor of server %v to %v", uuid, flavor),
 		})
 		return errors
 	}
 
-	data.SetId(id)
+	data.SetId(uuid)
 	return errors
 }
 

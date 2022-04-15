@@ -47,7 +47,7 @@ func NewSizes(ctx context.Context) *Sizes {
 }
 
 // ListPlans - return all plans
-func (s *Sizes) ListPlans(region string) ([]PlanDetails, error) {
+func (s *Sizes) ListPlans(region string) (details []PlanDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/sizes", ECCEndPoint, Version, region)
 
 	data, err := s.requester.List(endpoint, nil)
@@ -60,7 +60,6 @@ func (s *Sizes) ListPlans(region string) ([]PlanDetails, error) {
 		return nil, err
 	}
 
-	var details []PlanDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }

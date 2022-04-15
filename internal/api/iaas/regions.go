@@ -35,7 +35,7 @@ func NewRegion(ctx context.Context) *Region {
 }
 
 // List - return all regions
-func (r *Region) List() ([]RegionDetails, error) {
+func (r *Region) List() (details []RegionDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/details", ECCEndPoint, Version)
 
 	data, err := r.requester.List(endpoint, nil)
@@ -48,7 +48,6 @@ func (r *Region) List() ([]RegionDetails, error) {
 		return nil, err
 	}
 
-	var details []RegionDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }

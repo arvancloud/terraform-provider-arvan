@@ -125,7 +125,7 @@ func NewNetwork(ctx context.Context) *Network {
 }
 
 // List - return all network
-func (n *Network) List(region string) ([]NetworkDetails, error) {
+func (n *Network) List(region string) (details []NetworkDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/networks", ECCEndPoint, Version, region)
 
 	data, err := n.requester.List(endpoint, nil)
@@ -138,7 +138,6 @@ func (n *Network) List(region string) ([]NetworkDetails, error) {
 		return nil, err
 	}
 
-	var details []NetworkDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
@@ -160,21 +159,21 @@ func (n *Network) Find(region, name string) (*NetworkDetails, error) {
 }
 
 // Detach - detach a network from a server
-func (n *Network) Detach(region, id string, opts *NetworkDetachOpts) error {
+func (n *Network) Detach(region, id string, opts *NetworkDetachOpts) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/networks/%v/detach", ECCEndPoint, Version, region, id)
-	_, err := n.requester.Patch(endpoint, opts, nil)
+	_, err = n.requester.Patch(endpoint, opts, nil)
 	return err
 }
 
 // Attach - attach a network to a server
-func (n *Network) Attach(region, id string, opts *NetworkAttachOpts) error {
+func (n *Network) Attach(region, id string, opts *NetworkAttachOpts) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/networks/%v/attach", ECCEndPoint, Version, region, id)
-	_, err := n.requester.Patch(endpoint, opts, nil)
+	_, err = n.requester.Patch(endpoint, opts, nil)
 	return err
 }
 
 // ReadSubnet - get subnet details
-func (n *Network) ReadSubnet(region, id string) ([]SubnetDetails, error) {
+func (n *Network) ReadSubnet(region, id string) (details []SubnetDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/subnets/%v", ECCEndPoint, Version, region, id)
 
 	data, err := n.requester.Read(endpoint, nil)
@@ -187,14 +186,12 @@ func (n *Network) ReadSubnet(region, id string) ([]SubnetDetails, error) {
 		return nil, err
 	}
 
-	var details []SubnetDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
 
 // CreateSubnet - create a subnet
-func (n *Network) CreateSubnet(region string, opts *SubnetOpts) (*SubnetDetails, error) {
-
+func (n *Network) CreateSubnet(region string, opts *SubnetOpts) (details *SubnetDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/subnets", ECCEndPoint, Version, region)
 
 	data, err := n.requester.Create(endpoint, opts, nil)
@@ -207,13 +204,12 @@ func (n *Network) CreateSubnet(region string, opts *SubnetOpts) (*SubnetDetails,
 		return nil, err
 	}
 
-	var details *SubnetDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
 
 // UpdateSubnet - edit a subnet
-func (n *Network) UpdateSubnet(region, id string, opts *SubnetOpts) (*SubnetDetails, error) {
+func (n *Network) UpdateSubnet(region, id string, opts *SubnetOpts) (details *SubnetDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/subnets/%v", ECCEndPoint, Version, region, id)
 
 	data, err := n.requester.Patch(endpoint, opts, nil)
@@ -226,7 +222,6 @@ func (n *Network) UpdateSubnet(region, id string, opts *SubnetOpts) (*SubnetDeta
 		return nil, err
 	}
 
-	var details *SubnetDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }

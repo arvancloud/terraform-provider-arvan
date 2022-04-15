@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api/client"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api/iaas"
+	"github.com/arvancloud/terraform-provider-arvan/internal/service/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -14,7 +15,7 @@ func ResourceAbrak() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceAbrakCreate,
 		ReadContext:   resourceAbrakRead,
-		UpdateContext: resourceAbrakUpdate,
+		UpdateContext: helper.DummyResourceAction,
 		DeleteContext: resourceAbrakDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -125,8 +126,7 @@ func ResourceAbrak() *schema.Resource {
 	}
 }
 
-func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -276,8 +276,7 @@ func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta an
 	return errors
 }
 
-func resourceAbrakRead(_ context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func resourceAbrakRead(_ context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -303,14 +302,7 @@ func resourceAbrakRead(_ context.Context, data *schema.ResourceData, meta any) d
 	return nil
 }
 
-func resourceAbrakUpdate(_ context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
-	// TODO: we have to implement it
-	return errors
-}
-
-func resourceAbrakDelete(_ context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func resourceAbrakDelete(_ context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 	region, ok := data.Get("region").(string)
 	if !ok {

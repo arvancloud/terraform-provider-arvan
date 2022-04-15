@@ -152,7 +152,7 @@ func (i *Image) List(region, imageType string) (any, error) {
 }
 
 // ListMarketPlace - return all images at marketplace
-func (i *Image) ListMarketPlace(region string) ([]MarketPlaceDetail, error) {
+func (i *Image) ListMarketPlace(region string) (details []MarketPlaceDetail, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/images/marketplace", ECCEndPoint, Version, region)
 
 	data, err := i.requester.List(endpoint, nil)
@@ -165,7 +165,6 @@ func (i *Image) ListMarketPlace(region string) ([]MarketPlaceDetail, error) {
 		return nil, err
 	}
 
-	var details []MarketPlaceDetail
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }

@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakRescue() *schema.Resource {
+func ResourceFloatIP() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceAbrakRescueCreate,
+		CreateContext: resourceFloatIPCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: resourceAbrakRescueUpdate,
-		DeleteContext: helper.DummyResourceAction,
+		UpdateContext: helper.DummyResourceAction,
+		DeleteContext: resourceFloatIPDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -24,27 +24,45 @@ func ResourceAbrakRescue() *schema.Resource {
 			"region": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "region code",
+				Description:  "Region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"uuid": {
+			"description": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "uuid of abrak",
-			},
-			"enable": {
-				Type:        schema.TypeBool,
-				Required:    true,
-				Description: "enable rescue (false means un-rescue)",
+				Description: "description",
 			},
 		},
 	}
 }
 
-func resourceAbrakRescueCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
-	var err error
+func resourceFloatIPCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
+	c := meta.(*client.Client).IaaS
 
+	region, ok := data.Get("region").(string)
+	if !ok {
+		errors = append(errors, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "could not parse region",
+		})
+		return errors
+	}
+
+	// FloatIP Options
+	FloatIP := &iaas.FloatIPOpts{
+		Description: data.Get("description").(string),
+	}
+
+	response, err := c.FloatIP.Create(region, FloatIP)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	data.SetId(fmt.Sprint(response.ID))
+	return errors
+}
+
+func resourceFloatIPDelete(_ context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -56,30 +74,14 @@ func resourceAbrakRescueCreate(ctx context.Context, data *schema.ResourceData, m
 		return errors
 	}
 
-	id := data.Get("uuid").(string)
-
-	enable := data.Get("enable").(bool)
-	if enable {
-		err = c.Server.Actions.Rescue(region, id)
-	} else {
-		err = c.Server.Actions.UnRescue(region, id)
-	}
-
+	err := c.FloatIP.Delete(region, data.Id())
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not rescue/un-rescue server %v", id),
+			Summary:  fmt.Sprintf("can not delete FloatIP %v", data.Id()),
 		})
 		return errors
 	}
 
-	data.SetId(id)
-	return errors
-}
-
-func resourceAbrakRescueUpdate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	if data.HasChange("enable") {
-		return resourceAbrakRescueCreate(ctx, data, meta)
-	}
 	return nil
 }

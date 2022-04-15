@@ -43,8 +43,8 @@ func NewRequester(apiKey string) *Requester {
 }
 
 // CheckAuthenticate - to check authenticate
-func (r *Requester) CheckAuthenticate() error {
-	_, err := r.DoRequest("GET", AuthEndpoint, nil)
+func (r *Requester) CheckAuthenticate() (err error) {
+	_, err = r.DoRequest("GET", AuthEndpoint, nil)
 	if err != nil {
 		return err
 	}
@@ -116,8 +116,7 @@ func (r *Requester) Put(endpoint string, opts any, queries map[string]string) (a
 }
 
 // Delete - make DELETE request
-func (r *Requester) Delete(endpoint string, queries map[string]string) error {
-	var err error
+func (r *Requester) Delete(endpoint string, queries map[string]string) (err error) {
 	if queries != nil {
 		_, err = r.DoRequest("DELETE", endpoint, nil)
 	} else {
@@ -132,8 +131,7 @@ func (r *Requester) List(endpoint string, queries map[string]string) (any, error
 }
 
 // Custom - general purpose maker for request
-func (r *Requester) Custom(method, endpoint string, opts any, queries map[string]string) (any, error) {
-	var err error
+func (r *Requester) Custom(method, endpoint string, opts any, queries map[string]string) (details any, err error) {
 	var response, body []byte
 
 	if opts != nil {
@@ -163,7 +161,6 @@ func (r *Requester) Custom(method, endpoint string, opts any, queries map[string
 		return nil, err
 	}
 
-	var details any
 	err = json.Unmarshal(data, &details)
 	if err != nil {
 		return nil, err

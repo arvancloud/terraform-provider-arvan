@@ -18,15 +18,15 @@ func NewPort(ctx context.Context) *Port {
 }
 
 // Enable - enable a port
-func (p *Port) Enable(region, id string) error {
+func (p *Port) Enable(region, id string) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/ports/%v/enable", ECCEndPoint, Version, region, id)
-	_, err := p.requester.Patch(endpoint, nil, nil)
+	_, err = p.requester.Patch(endpoint, nil, nil)
 	return err
 }
 
 // Disable - disable a port
-func (p *Port) Disable(region, id string) error {
+func (p *Port) Disable(region, id string) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/ports/%v/disable", ECCEndPoint, Version, region, id)
-	_, err := p.requester.Patch(endpoint, nil, nil)
+	_, err = p.requester.Patch(endpoint, nil, nil)
 	return err
 }

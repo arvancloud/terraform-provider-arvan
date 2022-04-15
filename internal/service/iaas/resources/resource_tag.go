@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceFloatIP() *schema.Resource {
+func ResourceTag() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceFloatIPCreate,
+		CreateContext: resourceTagCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: helper.DummyResourceAction,
-		DeleteContext: resourceFloatIPDelete,
+		UpdateContext: resourceTagUpdate,
+		DeleteContext: resourceTagDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -24,50 +24,22 @@ func ResourceFloatIP() *schema.Resource {
 			"region": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "Region code",
+				Description:  "region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"description": {
+			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "description",
+				Description: "name of tag",
 			},
 		},
 	}
 }
 
-func resourceFloatIPCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
-
+func resourceTagCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
+	var err error
 	c := meta.(*client.Client).IaaS
 
-	region, ok := data.Get("region").(string)
-	if !ok {
-		errors = append(errors, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "could not parse region",
-		})
-		return errors
-	}
-
-	// FloatIP Options
-	FloatIP := &iaas.FloatIPOpts{
-		Description: data.Get("description").(string),
-	}
-
-	response, err := c.FloatIP.Create(region, FloatIP)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	data.SetId(fmt.Sprint(response.ID))
-	return errors
-}
-
-func resourceFloatIPDelete(_ context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
-
-	c := meta.(*client.Client).IaaS
 	region, ok := data.Get("region").(string)
 	if !ok {
 		errors = append(errors, diag.Diagnostic{
@@ -77,7 +49,69 @@ func resourceFloatIPDelete(_ context.Context, data *schema.ResourceData, meta an
 		return errors
 	}
 
-	err := c.FloatIP.Delete(region, data.Id())
+	// Tag options
+	tagOpts := &iaas.TagOpts{
+		TagName: data.Get("name").(string),
+	}
+
+	tag, err := c.Tag.Create(region, tagOpts)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	data.SetId(tag.ID)
+	return errors
+}
+
+func resourceTagUpdate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
+	c := meta.(*client.Client).IaaS
+
+	region, ok := data.Get("region").(string)
+	if !ok {
+		errors = append(errors, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "can not get region",
+		})
+		return errors
+	}
+
+	if data.HasChange("name") {
+		// Tag options
+		tagOpts := &iaas.TagUpdateOpts{
+			TagName: data.Get("name").(string),
+		}
+
+		tag, err := c.Tag.Update(region, data.Id(), tagOpts)
+		if err != nil {
+			errors = append(errors, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("can not delete FloatIP %v", data.Id()),
+			})
+			return errors
+		}
+
+		data.Set("name", tag.Name)
+
+		return nil
+	}
+	return nil
+}
+
+func resourceTagDelete(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
+	c := meta.(*client.Client).IaaS
+
+	region, ok := data.Get("region").(string)
+	if !ok {
+		errors = append(errors, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "can not get region",
+		})
+		return errors
+	}
+
+	// TODO: do we need to detach before of delete the tag ?
+
+	err := c.Tag.Delete(region, data.Id())
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,

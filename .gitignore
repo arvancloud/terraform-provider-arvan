@@ -2,3 +2,5 @@
 .idea
 *.terraform*
 *.tfstate*
+examples/main.tf
+bin/

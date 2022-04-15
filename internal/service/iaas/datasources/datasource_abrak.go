@@ -33,8 +33,7 @@ func DatasourceAbrak() *schema.Resource {
 	}
 }
 
-func datasourceAbrakRead(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func datasourceAbrakRead(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)

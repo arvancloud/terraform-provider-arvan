@@ -50,7 +50,7 @@ func (s *SSHKey) Find(region, name string) (*SSHKeyDetails, error) {
 }
 
 // List - return all sshkeys
-func (s *SSHKey) List(region string) ([]SSHKeyDetails, error) {
+func (s *SSHKey) List(region string) (details []SSHKeyDetails, err error) {
 
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/ssh-keys", ECCEndPoint, Version, region)
 
@@ -64,14 +64,12 @@ func (s *SSHKey) List(region string) ([]SSHKeyDetails, error) {
 		return nil, err
 	}
 
-	var details []SSHKeyDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }
 
 // Create - create a sshkey
-func (s *SSHKey) Create(region string, opts *SSHKeyOpts) (*SSHKeyDetails, error) {
-
+func (s *SSHKey) Create(region string, opts *SSHKeyOpts) (details *SSHKeyDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/ssh-keys", ECCEndPoint, Version, region)
 
 	data, err := s.requester.Create(endpoint, opts, nil)
@@ -84,7 +82,6 @@ func (s *SSHKey) Create(region string, opts *SSHKeyOpts) (*SSHKeyDetails, error)
 		return nil, err
 	}
 
-	var details *SSHKeyDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }

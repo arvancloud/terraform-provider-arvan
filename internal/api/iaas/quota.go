@@ -39,9 +39,8 @@ func NewQuota(ctx context.Context) *Quota {
 	}
 }
 
-// List - return all quotas
-func (q *Quota) List(region string) ([]QuotaDetails, error) {
-
+// Read - return all quotas
+func (q *Quota) Read(region string) (details *QuotaDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/quotas", ECCEndPoint, Version, region)
 
 	data, err := q.requester.List(endpoint, nil)
@@ -54,7 +53,6 @@ func (q *Quota) List(region string) ([]QuotaDetails, error) {
 		return nil, err
 	}
 
-	var details []QuotaDetails
 	err = json.Unmarshal(marshal, &details)
 	return details, err
 }

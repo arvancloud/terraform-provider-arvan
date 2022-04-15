@@ -2,7 +2,6 @@ package resources
 
 import (
 	"context"
-	"fmt"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api/client"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api/iaas"
 	"github.com/arvancloud/terraform-provider-arvan/internal/service/helper"
@@ -11,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakChangePublicIP() *schema.Resource {
+func ResourceSecurityGroupCdn() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceAbrakChangePublicIPCreate,
+		CreateContext: resourceSecurityGroupCdnCreate,
 		ReadContext:   helper.DummyResourceAction,
 		UpdateContext: helper.DummyResourceAction,
 		DeleteContext: helper.DummyResourceAction,
@@ -24,42 +23,30 @@ func ResourceAbrakChangePublicIP() *schema.Resource {
 			"region": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "region code",
+				Description:  "Region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
-			},
-			"uuid": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "uuid of abrak",
 			},
 		},
 	}
 }
 
-func ResourceAbrakChangePublicIPCreate(ctx context.Context, data *schema.ResourceData, meta any) diag.Diagnostics {
-	var errors diag.Diagnostics
+func resourceSecurityGroupCdnCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
 	if !ok {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "can not get region",
+			Summary:  "could not parse region",
 		})
 		return errors
 	}
 
-	id := data.Get("uuid").(string)
-
-	err := c.Server.Actions.ChangePublicIP(region, id)
+	err := c.SecurityGroup.CreateCdn(region)
 	if err != nil {
-		errors = append(errors, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("could not shutdown server %v", id),
-		})
-		return errors
+		return diag.FromErr(err)
 	}
 
-	data.SetId(id)
+	data.SetId(region)
 	return errors
 }
