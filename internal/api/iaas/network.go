@@ -8,12 +8,12 @@ import (
 )
 
 type SubnetOpts struct {
-	Name          string   `json:"name"`
-	SubnetIP      string   `json:"subnet_ip"`
-	EnableGateway bool     `json:"enable_gateway"`
-	SubnetGateway string   `json:"subnet_gateway"`
-	Dhcp          string   `json:"dhcp"`
-	DnsServers    []string `json:"dns_servers"`
+	Name          string `json:"name"`
+	SubnetIP      string `json:"subnet_ip"`
+	EnableGateway bool   `json:"enable_gateway"`
+	SubnetGateway string `json:"subnet_gateway"`
+	Dhcp          string `json:"dhcp"`
+	DnsServers    string `json:"dns_servers"`
 }
 
 type NetworkAttachOpts struct {
@@ -173,7 +173,7 @@ func (n *Network) Attach(region, id string, opts *NetworkAttachOpts) (err error)
 }
 
 // ReadSubnet - get subnet details
-func (n *Network) ReadSubnet(region, id string) (details []SubnetDetails, err error) {
+func (n *Network) ReadSubnet(region, id string) (details *SubnetDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/subnets/%v", ECCEndPoint, Version, region, id)
 
 	data, err := n.requester.Read(endpoint, nil)
