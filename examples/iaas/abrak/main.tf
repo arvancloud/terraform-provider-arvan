@@ -74,5 +74,5 @@ resource "arvan_iaas_sshkey" "ssh-key-user-1" {
 }
 
 output "details-ssh-key" {
-  value = arvan_iaas_sshkey
+  value = arvan_iaas_sshkey.ssh-key-user-1
 }
