@@ -23,7 +23,7 @@ func NewServerActions(ctx context.Context) *ServerActions {
 func (s *ServerActions) Rename(region, id, newName string) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/rename", ECCEndPoint, Version, region, id)
 
-	var requestBody any = &struct {
+	var requestBody = struct {
 		Name string `json:"name"`
 	}{
 		Name: newName,
@@ -34,7 +34,7 @@ func (s *ServerActions) Rename(region, id, newName string) (err error) {
 		return err
 	}
 
-	_, err = s.requester.Create(endpoint, bytes.NewBuffer(body), nil)
+	_, err = s.requester.DoRequest("POST", endpoint, bytes.NewBuffer(body))
 	return err
 }
 
@@ -95,7 +95,7 @@ func (s *ServerActions) Rebuild(region, id, imageId string) (err error) {
 		return err
 	}
 
-	_, err = s.requester.Create(endpoint, bytes.NewBuffer(body), nil)
+	_, err = s.requester.DoRequest("POST", endpoint, bytes.NewBuffer(body))
 	return err
 }
 
@@ -114,7 +114,7 @@ func (s *ServerActions) ChangeFlavor(region, id, flavorId string) (err error) {
 		return err
 	}
 
-	_, err = s.requester.Create(endpoint, bytes.NewBuffer(body), nil)
+	_, err = s.requester.DoRequest("POST", endpoint, bytes.NewBuffer(body))
 	return err
 }
 
@@ -133,7 +133,7 @@ func (s *ServerActions) ChangeDiskSize(region, id string, size int) (err error) 
 		return err
 	}
 
-	_, err = s.requester.Create(endpoint, bytes.NewBuffer(body), nil)
+	_, err = s.requester.DoRequest("POST", endpoint, bytes.NewBuffer(body))
 	return err
 }
 
@@ -152,7 +152,7 @@ func (s *ServerActions) Snapshot(region, id, name string) (err error) {
 		return err
 	}
 
-	_, err = s.requester.Create(endpoint, bytes.NewBuffer(body), nil)
+	_, err = s.requester.DoRequest("POST", endpoint, bytes.NewBuffer(body))
 	return err
 }
 
@@ -171,7 +171,7 @@ func (s *ServerActions) AddSecurityGroup(region, id, securityGroupId string) (er
 		return err
 	}
 
-	_, err = s.requester.Create(endpoint, bytes.NewBuffer(body), nil)
+	_, err = s.requester.DoRequest("POST", endpoint, bytes.NewBuffer(body))
 	return err
 }
 
@@ -190,7 +190,7 @@ func (s *ServerActions) RemoveSecurityGroup(region, id, securityGroupId string) 
 		return err
 	}
 
-	_, err = s.requester.Create(endpoint, bytes.NewBuffer(body), nil)
+	_, err = s.requester.DoRequest("POST", endpoint, bytes.NewBuffer(body))
 	return err
 }
 
