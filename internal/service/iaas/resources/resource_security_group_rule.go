@@ -27,7 +27,7 @@ func ResourceSecurityGroupRule() *schema.Resource {
 				Description:  "Region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"security_group_id": {
+			"security_group_uuid": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "uuid of security group",
@@ -87,7 +87,7 @@ func resourceSecurityGroupRuleCreate(ctx context.Context, data *schema.ResourceD
 		return errors
 	}
 
-	securityGroupId := data.Get("security_group_id").(string)
+	securityGroupId := data.Get("security_group_uuid").(string)
 
 	// get ips
 	var ips []string
@@ -162,9 +162,10 @@ func validateIPs(i any, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("its not string"))
+		return warnings, errors
 	}
 	if v == "any" {
 		return warnings, errors
 	}
-	return validation.IsIPv4Range(i, k)
+	return validation.IsCIDR(i, k)
 }

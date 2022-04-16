@@ -35,7 +35,7 @@ func ResourceSubnet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "IP range of subnet",
-				ValidateFunc: validation.IsIPv4Range,
+				ValidateFunc: validation.IsCIDR,
 			},
 			"enable_gateway": {
 				Type:        schema.TypeBool,

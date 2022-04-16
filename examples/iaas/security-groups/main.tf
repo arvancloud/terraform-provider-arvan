@@ -56,8 +56,8 @@ resource "arvan_iaas_security_group_rule" "rule-to-security-group" {
     data.arvan_iaas_security_group.data-security-group
   ]
 
-  region = region
-  security_group_id = data.arvan_iaas_security_group.data-security-group.id
+  region = var.region
+  security_group_uuid = data.arvan_iaas_security_group.data-security-group.id
   description = "sample rule"
   direction = "ingress"
   protocol = "tcp"

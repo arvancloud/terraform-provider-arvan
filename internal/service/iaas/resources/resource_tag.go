@@ -65,7 +65,7 @@ func resourceTagCreate(ctx context.Context, data *schema.ResourceData, meta any)
 		return diag.FromErr(err)
 	}
 
-	data.SetId(tag.ID.(string))
+	data.SetId(fmt.Sprint(tag.ID))
 	return errors
 }
 

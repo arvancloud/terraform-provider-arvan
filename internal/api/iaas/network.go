@@ -96,7 +96,7 @@ type SubnetDetails struct {
 	IPv6RaMode      string          `json:"ipv6_ra_mode"`
 	SubnetPoolId    string          `json:"subnetpool_id"`
 	ServiceType     string          `json:"service_type"`
-	RevisionNumber  int             `json:"revision_number"`
+	RevisionNumber  any             `json:"revision_number"`
 	Tags            []TagDetails    `json:"tags"`
 	Servers         []NetworkServer `json:"servers"`
 }
@@ -116,7 +116,7 @@ type NetworkDetails struct {
 	IPv4AddressScope      string          `json:"ipv4_address_scope"`
 	IPv6AddressScope      string          `json:"ipv6_address_scope"`
 	QosPolicyId           string          `json:"qos_policy_id"`
-	RevisionNumber        int             `json:"revision_number"`
+	RevisionNumber        any             `json:"revision_number"`
 	RouteExternal         string          `json:"route:external"`
 	Mtu                   int             `json:"mtu"`
 	PortSecurityEnabled   bool            `json:"port_security_enabled"`
