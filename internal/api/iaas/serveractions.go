@@ -155,8 +155,8 @@ func (s *ServerActions) Snapshot(region, id string, opts *SnapshotOpts) (err err
 	return err
 }
 
-// AddSecurityGroup - assign a securityGroup to a server
-func (s *ServerActions) AddSecurityGroup(region, id, securityGroupId string) (err error) {
+// AssignSecurityGroup - assign a securityGroup to a server
+func (s *ServerActions) AssignSecurityGroup(region, id, securityGroupId string) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/add-security-group", ECCEndPoint, Version, region, id)
 
 	var requestBody any = &struct {

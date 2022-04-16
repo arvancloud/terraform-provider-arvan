@@ -23,18 +23,18 @@ func ResourceVolumeAttach() *schema.Resource {
 			"region": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "Region code",
+				Description:  "region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"abrak_id": {
+			"abrak_uuid": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "UUID of abrak",
 				ValidateFunc: validation.IsUUID,
 			},
-			"volume_id": {
+			"volume_uuid": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				Description:  "UUID of volume",
 				ValidateFunc: validation.IsUUID,
 			},
@@ -56,8 +56,8 @@ func resourceVolumeAttachCreate(ctx context.Context, data *schema.ResourceData, 
 
 	// volumeAttachmentOpts Options
 	volumeAttachmentOpts := &iaas.VolumeAttachmentOpts{
-		ServerId: data.Get("abrak_id").(string),
-		VolumeId: data.Get("volume_id").(string),
+		ServerId: data.Get("abrak_uuid").(string),
+		VolumeId: data.Get("volume_uuid").(string),
 	}
 
 	err := c.Volume.Attach(region, volumeAttachmentOpts)
@@ -83,8 +83,8 @@ func resourceVolumeAttachDelete(_ context.Context, data *schema.ResourceData, me
 
 	// volumeAttachmentOpts Options
 	volumeAttachmentOpts := &iaas.VolumeAttachmentOpts{
-		ServerId: data.Get("abrak_id").(string),
-		VolumeId: data.Get("volume_id").(string),
+		ServerId: data.Get("abrak_uuid").(string),
+		VolumeId: data.Get("volume_uuid").(string),
 	}
 
 	err := c.Volume.Detach(region, volumeAttachmentOpts)
