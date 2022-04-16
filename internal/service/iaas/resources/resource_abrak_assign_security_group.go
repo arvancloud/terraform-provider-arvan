@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceAbrakAddSecurityGroup() *schema.Resource {
+func ResourceAbrakAssignSecurityGroup() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceAbrakAddSecurityGroupCreate,
+		CreateContext: resourceAbrakAssignSecurityGroupCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: resourceAbrakAddSecurityGroupUpdate,
-		DeleteContext: resourceAbrakAddSecurityGroupDelete,
+		UpdateContext: resourceAbrakAssignSecurityGroupUpdate,
+		DeleteContext: resourceAbrakAssignSecurityGroupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -43,7 +43,7 @@ func ResourceAbrakAddSecurityGroup() *schema.Resource {
 	}
 }
 
-func resourceAbrakAddSecurityGroupCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
+func resourceAbrakAssignSecurityGroupCreate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -58,7 +58,7 @@ func resourceAbrakAddSecurityGroupCreate(ctx context.Context, data *schema.Resou
 	uuid := data.Get("abrak_uuid").(string)
 
 	securityGroupId := data.Get("security_group_uuid").(string)
-	err := c.Server.Actions.AddSecurityGroup(region, uuid, securityGroupId)
+	err := c.Server.Actions.AssignSecurityGroup(region, uuid, securityGroupId)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
@@ -71,7 +71,7 @@ func resourceAbrakAddSecurityGroupCreate(ctx context.Context, data *schema.Resou
 	return errors
 }
 
-func resourceAbrakAddSecurityGroupUpdate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
+func resourceAbrakAssignSecurityGroupUpdate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)
@@ -94,12 +94,12 @@ func resourceAbrakAddSecurityGroupUpdate(ctx context.Context, data *schema.Resou
 			return errors
 		}
 
-		return resourceAbrakAddSecurityGroupCreate(ctx, data, meta)
+		return resourceAbrakAssignSecurityGroupCreate(ctx, data, meta)
 	}
 	return nil
 }
 
-func resourceAbrakAddSecurityGroupDelete(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
+func resourceAbrakAssignSecurityGroupDelete(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 
 	region, ok := data.Get("region").(string)

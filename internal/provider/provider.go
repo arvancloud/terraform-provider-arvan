@@ -31,7 +31,7 @@ func Provider() *schema.Provider {
 			"arvan_iaas_abrak_change_flavor":         resources.ResourceAbrakChangeFlavor(),
 			"arvan_iaas_abrak_change_disk_size":      resources.ResourceAbrakChangeDiskSize(),
 			"arvan_iaas_abrak_snapshot":              resources.ResourceAbrakSnapshot(),
-			"arvan_iaas_abrak_add_security_group":    resources.ResourceAbrakAddSecurityGroup(),
+			"arvan_iaas_abrak_assign_security_group": resources.ResourceAbrakAssignSecurityGroup(),
 			"arvan_iaas_abrak_remove_security_group": resources.ResourceAbrakRemoveSecurityGroup(),
 			"arvan_iaas_cdn_security_group":          resources.ResourceSecurityGroupCdn(),
 			"arvan_iaas_security_group_rule":         resources.ResourceSecurityGroupRule(),
