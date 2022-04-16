@@ -8,6 +8,11 @@ import (
 	"github.com/arvancloud/terraform-provider-arvan/internal/api"
 )
 
+type SnapshotOpts struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type ServerActions struct {
 	requester *api.Requester
 }
@@ -138,18 +143,10 @@ func (s *ServerActions) ChangeDiskSize(region, id string, size int) (err error) 
 }
 
 // Snapshot - create a snapshot from a server
-func (s *ServerActions) Snapshot(region, id, name, description string) (err error) {
+func (s *ServerActions) Snapshot(region, id string, opts *SnapshotOpts) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/%v/snapshot", ECCEndPoint, Version, region, id)
 
-	var requestBody any = &struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-	}{
-		Name:        name,
-		Description: description,
-	}
-
-	body, err := json.Marshal(requestBody)
+	body, err := json.Marshal(opts)
 	if err != nil {
 		return err
 	}

@@ -27,10 +27,9 @@ func ResourceTagDetach() *schema.Resource {
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
 			"tag_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				Description:  "UUID of tag",
-				ValidateFunc: validation.IsUUID,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "id of tag",
 			},
 			"instance_id": {
 				Type:         schema.TypeString,
