@@ -209,7 +209,6 @@ func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta an
 		})
 		return errors
 	}
-
 	// NetworkIDs
 	if networks, ok := data.GetOk("networks"); !ok {
 		opts, err := c.Server.Options(region)
@@ -272,7 +271,7 @@ func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta an
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	data.SetId(fmt.Sprint(response.ID))
+	data.SetId(response.ID)
 	return errors
 }
 
@@ -288,7 +287,7 @@ func resourceAbrakRead(_ context.Context, data *schema.ResourceData, meta any) (
 		return errors
 	}
 
-	_, err := c.Server.Read(region, data.Id())
+	abrak, err := c.Server.Read(region, data.Id())
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
@@ -299,6 +298,7 @@ func resourceAbrakRead(_ context.Context, data *schema.ResourceData, meta any) (
 
 	// TODO: we have to store required items
 
+	data.SetId(abrak.ID)
 	return nil
 }
 

@@ -19,17 +19,12 @@ provider "arvan" {
 
 variable "abrak-name" {
   type = string
-  default = "terraform-abrak-1"
+  default = "terraform-abrak-volume-2"
 }
 
 variable "region" {
   type = string
   default = "ir-thr-c2"
-}
-
-variable "public-key" {
-  type = string
-  default = "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGaUxYCh9OHV+h/01c8JddwfSenF+Bv2JvN8Dxlo5AT3KwdeN+3wY5D5iZAY5FaOaItgoZrIQDPOAJcjBNk5kSQ="
 }
 
 resource "arvan_iaas_abrak" "abrak-1" {
@@ -41,17 +36,6 @@ resource "arvan_iaas_abrak" "abrak-1" {
     name = "debian/11"
   }
   disk_size = 25
-
-  # optional
-  security_groups = [
-    "arDefault"
-  ]
-
-  # optional
-  networks = [
-    "public207",
-    "public208"
-  ]
 }
 
 data "arvan_iaas_abrak" "get_abrak_id" {
@@ -67,12 +51,13 @@ output "details-abrak-1" {
   value = data.arvan_iaas_abrak.get_abrak_id
 }
 
-resource "arvan_iaas_sshkey" "ssh-key-user-1" {
-  region = var.region
-  name = "ssh-key-user-1"
-  public_key = var.public-key
-}
+resource "arvan_iaas_network_attach" "attach-network-abrak" {
+  depends_on = [
+    arvan_iaas_abrak.abrak-1
+  ]
 
-output "details-ssh-key" {
-  value = arvan_iaas_sshkey.ssh-key-user-1
+  region = var.region
+  abrak_id = data.arvan_iaas_abrak.get_abrak_id.id
+  network_id = "2f42d4de-3039-49f8-a76b-f93d7a7627c8"
+#  network_id = data.arvan_iaas_options.default-network.network_id
 }

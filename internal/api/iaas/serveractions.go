@@ -201,6 +201,13 @@ func (s *ServerActions) ChangePublicIP(region, id string) (err error) {
 	return err
 }
 
+// AddPublicIP - add public-ip of a server
+func (s *ServerActions) AddPublicIP(region, id string) (err error) {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/add-public-ip", ECCEndPoint, Version, region, id)
+	_, err = s.requester.Create(endpoint, nil, nil)
+	return err
+}
+
 // ResetRootPassword - reset root password of a server
 func (s *ServerActions) ResetRootPassword(region, id string) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/reset-root-password", ECCEndPoint, Version, region, id)

@@ -27,10 +27,11 @@ func ResourceNetworkAttach() *schema.Resource {
 				Description:  "Region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "name of network",
+			"network_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "UUID of network",
+				ValidateFunc: validation.IsUUID,
 			},
 			"abrak_id": {
 				Type:         schema.TypeString,
@@ -65,20 +66,22 @@ func resourceNetworkAttachCreate(ctx context.Context, data *schema.ResourceData,
 		return errors
 	}
 
-	name := data.Get("name").(string)
-
-	// looking for network id
-	network, err := c.Network.Find(region, name)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	networkId := data.Get("network_id").(string)
 
 	// networkAttach Options
 	networkAttachOpts := &iaas.NetworkAttachOpts{
 		ServerId: data.Get("abrak_id").(string),
 	}
 
-	err = c.Network.Attach(region, network.ID, networkAttachOpts)
+	if ip, ok := data.GetOk("ip"); ok {
+		networkAttachOpts.IP = ip.(string)
+	}
+
+	if enablePortSecurity, ok := data.GetOk("enable_port_security"); ok {
+		networkAttachOpts.EnablePortSecurity = enablePortSecurity.(bool)
+	}
+
+	network, err := c.Network.Attach(region, networkId, networkAttachOpts)
 	if err != nil {
 		return diag.FromErr(err)
 	}

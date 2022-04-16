@@ -20,6 +20,7 @@ const (
 	UnRescueAction       = "unrescue"
 	ResetPasswordAction  = "reset-password"
 	ChangePublicIPAction = "change-ip"
+	AddPublicIPAction    = "add-public-ip"
 )
 
 var (
@@ -32,6 +33,7 @@ var (
 		UnRescueAction,
 		ResetPasswordAction,
 		ChangePublicIPAction,
+		AddPublicIPAction,
 	}
 )
 
@@ -100,6 +102,8 @@ func resourceAbrakActionCreate(ctx context.Context, data *schema.ResourceData, m
 		err = c.Server.Actions.ResetRootPassword(region, uuid)
 	case ChangePublicIPAction:
 		err = c.Server.Actions.ChangePublicIP(region, uuid)
+	case AddPublicIPAction:
+		err = c.Server.Actions.AddPublicIP(region, uuid)
 	default:
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,

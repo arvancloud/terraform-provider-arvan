@@ -45,11 +45,13 @@ func Provider() *schema.Provider {
 			"arvan_iaas_tag_replace":                 resources.ResourceTagReplaceBatch(),
 			"arvan_iaas_network_attach":              resources.ResourceNetworkAttach(),
 			"arvan_iaas_network_detach":              resources.ResourceNetworkDetach(),
+			"arvan_iaas_subnet":                      resources.ResourceSubnet(),
 			"arvan_iaas_volume":                      resources.ResourceVolume(),
 			"arvan_iaas_volume_attach":               resources.ResourceVolumeAttach(),
 			"arvan_iaas_volume_detach":               resources.ResourceVolumeDetach(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			"arvan_iaas_options":        datasources.DatasourceOptions(),
 			"arvan_iaas_abrak":          datasources.DatasourceAbrak(),
 			"arvan_iaas_network":        datasources.DatasourceNetwork(),
 			"arvan_iaas_image":          datasources.DatasourceImage(),

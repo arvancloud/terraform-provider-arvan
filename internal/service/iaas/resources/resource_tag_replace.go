@@ -32,7 +32,6 @@ func ResourceTagReplaceBatch() *schema.Resource {
 				Description: "list of UUID instance",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					Required:     true,
 					Description:  "UUID of instance",
 					ValidateFunc: validation.IsUUID,
 				},
@@ -43,7 +42,6 @@ func ResourceTagReplaceBatch() *schema.Resource {
 				Description: "list of tag names",
 				Elem: &schema.Schema{
 					Type:        schema.TypeString,
-					Required:    true,
 					Description: "tag name",
 				},
 			},

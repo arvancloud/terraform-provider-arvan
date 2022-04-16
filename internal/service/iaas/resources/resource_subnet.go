@@ -75,7 +75,6 @@ func ResourceSubnet() *schema.Resource {
 				Description: "dns servers",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					Required:     true,
 					Description:  "ip address of dns",
 					ValidateFunc: validation.IsIPv4Address,
 				},

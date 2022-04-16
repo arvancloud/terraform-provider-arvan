@@ -174,7 +174,7 @@ func (s *Server) Delete(region, id string) error {
 	})
 }
 
-type ServerOptions struct {
+type ServerOptionsDetails struct {
 	RegionId              int    `json:"region_id"`
 	RequiresPaymentMethod bool   `json:"requires_payment_method"`
 	DropletCount          int    `json:"droplet_count"`
@@ -186,7 +186,7 @@ type ServerOptions struct {
 }
 
 // Options - return a region options (default network and image)
-func (s *Server) Options(region string) (details *ServerOptions, err error) {
+func (s *Server) Options(region string) (details *ServerOptionsDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/options", ECCEndPoint, Version, region)
 
 	data, err := s.requester.Read(endpoint, nil)

@@ -106,7 +106,7 @@ func (i *Image) Find(region, name, imageType string) (any, error) {
 		for _, group := range images.([]ImageDistributionDetails) {
 			for _, image := range group.Images {
 				if strings.ToLower(image.Name) == iName && strings.ToLower(group.Name) == iGroup {
-					return &image, nil
+					return image, nil
 				}
 			}
 		}
@@ -115,7 +115,7 @@ func (i *Image) Find(region, name, imageType string) (any, error) {
 		iName := imageName[0]
 		for _, image := range images.([]ImageServerDetails) {
 			if iName == strings.ToLower(image.Name) {
-				return &image, nil
+				return image, nil
 			}
 		}
 		return nil, fmt.Errorf("not found image %v", name)

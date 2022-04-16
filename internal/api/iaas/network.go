@@ -22,6 +22,18 @@ type NetworkAttachOpts struct {
 	EnablePortSecurity bool   `json:"enablePortSecurity"`
 }
 
+type NetworkAttachDetails struct {
+	ID              string `json:"id"`
+	AdminStateUp    bool   `json:"admin_state_up"`
+	IsRegionNetwork bool   `json:"is_region_network"`
+	Status          string `json:"status"`
+	MacAddress      string `json:"mac_address"`
+	IPAddress       string `json:"ip_address"`
+	NetworkId       string `json:"network_id"`
+	DeviceId        string `json:"device_id"`
+	SubnetId        string `json:"subnet_id"`
+}
+
 type NetworkDetachOpts struct {
 	ServerId string `json:"server_id"`
 }
@@ -166,10 +178,21 @@ func (n *Network) Detach(region, id string, opts *NetworkDetachOpts) (err error)
 }
 
 // Attach - attach a network to a server
-func (n *Network) Attach(region, id string, opts *NetworkAttachOpts) (err error) {
+func (n *Network) Attach(region, id string, opts *NetworkAttachOpts) (details *NetworkAttachDetails, err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/networks/%v/attach", ECCEndPoint, Version, region, id)
-	_, err = n.requester.Patch(endpoint, opts, nil)
-	return err
+
+	data, err := n.requester.Patch(endpoint, opts, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	marshal, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(marshal, &details)
+	return details, err
 }
 
 // ReadSubnet - get subnet details
