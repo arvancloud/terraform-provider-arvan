@@ -40,7 +40,7 @@ func ResourceAbrakSnapshot() *schema.Resource {
 			},
 			"snapshot_description": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "snapshot description of abrak",
 			},
 		},
