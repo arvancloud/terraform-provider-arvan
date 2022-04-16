@@ -51,6 +51,6 @@ func datasourceTagRead(ctx context.Context, data *schema.ResourceData, meta any)
 		return errors
 	}
 
-	data.SetId(tag.ID)
+	data.SetId(fmt.Sprint(tag.ID))
 	return errors
 }

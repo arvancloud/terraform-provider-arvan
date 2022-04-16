@@ -20,6 +20,7 @@ type VolumeAttachment struct {
 
 type VolumeDetails struct {
 	ID             string             `json:"id"`
+	Name           string             `json:"name"`
 	Size           int                `json:"size"`
 	Status         string             `json:"status"`
 	CreatedAt      string             `json:"created_at"`
@@ -28,7 +29,6 @@ type VolumeDetails struct {
 	SnapshotId     string             `json:"snapshot_id"`
 	SourceVolumeId string             `json:"source_volume_id"`
 	Bootable       string             `json:"bootable"`
-	Name           string             `json:"name"`
 	Attachments    []VolumeAttachment `json:"attachments"`
 }
 

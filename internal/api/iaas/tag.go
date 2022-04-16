@@ -30,7 +30,7 @@ type TagAttachmentOpts struct {
 }
 
 type TagDetails struct {
-	ID   string `json:"id"`
+	ID   any    `json:"id"`
 	Name string `json:"name"`
 }
 

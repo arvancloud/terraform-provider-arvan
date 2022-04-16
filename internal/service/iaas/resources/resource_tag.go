@@ -59,7 +59,7 @@ func resourceTagCreate(ctx context.Context, data *schema.ResourceData, meta any)
 		return diag.FromErr(err)
 	}
 
-	data.SetId(tag.ID)
+	data.SetId(tag.ID.(string))
 	return errors
 }
 

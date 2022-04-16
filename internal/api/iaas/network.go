@@ -57,7 +57,7 @@ type NetworkServerIP struct {
 	MacAddress          string `json:"mac_address"`
 	PortId              string `json:"port_id"`
 	PortSecurityEnabled bool   `json:"port_security_enabled"`
-	Ptr                 string `json:"ptr"`
+	Ptr                 any    `json:"ptr"`
 	Public              bool   `json:"public"`
 	SubnetId            string `json:"subnet_id"`
 	SubnetName          string `json:"subnet_name"`

@@ -59,7 +59,7 @@ func Provider() *schema.Provider {
 			"arvan_iaas_security_group": datasources.DatasourceSecurityGroup(),
 			"arvan_iaas_sshkey":         datasources.DatasourceSSHKey(),
 			"arvan_iaas_quota":          datasources.DatasourceQuota(),
-			"arvan_iaas_tag":            datasources.DatasourceQuota(),
+			"arvan_iaas_tag":            datasources.DatasourceTag(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

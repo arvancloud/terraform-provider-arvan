@@ -26,7 +26,7 @@ func DatasourceImage() *schema.Resource {
 				Description: "type of image",
 			},
 			"name": {
-				Type:        schema.TypeBool,
+				Type:        schema.TypeString,
 				Required:    true,
 				Description: "name of image",
 			},
