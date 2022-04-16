@@ -82,7 +82,7 @@ func resourceAbrakActionCreate(ctx context.Context, data *schema.ResourceData, m
 		return errors
 	}
 
-	uuid := data.Get("uuid").(string)
+	uuid := data.Get("abrak_uuid").(string)
 
 	action := data.Get("action").(string)
 	switch action {

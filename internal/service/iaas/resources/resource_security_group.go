@@ -15,7 +15,7 @@ func ResourceSecurityGroup() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceSecurityGroupCreate,
 		ReadContext:   helper.DummyResourceAction,
-		UpdateContext: helper.DummyResourceAction,
+		UpdateContext: resourceSecurityGroupUpdate,
 		DeleteContext: resourceSecurityGroupDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -69,8 +69,16 @@ func resourceSecurityGroupCreate(ctx context.Context, data *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	data.SetId(fmt.Sprint(response.ID))
+	data.SetId(response.ID)
 	return errors
+}
+
+func resourceSecurityGroupUpdate(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
+	if data.HasChange("name") {
+		// TODO: do we need to delete the previous one ?
+		return resourceSecurityGroupCreate(ctx, data, meta)
+	}
+	return nil
 }
 
 func resourceSecurityGroupDelete(_ context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {

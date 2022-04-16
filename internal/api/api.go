@@ -23,8 +23,8 @@ type ErrorResponse struct {
 }
 
 type SuccessResponse struct {
-	Message string `json:"message"`
-	Data    any    `json:"data"`
+	Message string `json:"message,omitempty"`
+	Data    any    `json:"data,omitempty"`
 }
 
 type Requester struct {

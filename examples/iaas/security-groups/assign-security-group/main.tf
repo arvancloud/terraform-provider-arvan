@@ -9,22 +9,21 @@ terraform {
 
 variable "ApiKey" {
   type = string
-  default = "<put your ApiKey here>"
-  sensitive = true
-}
-
-provider "arvan" {
-  api_key = var.ApiKey
+  default = "<put your apiKey here>"
 }
 
 variable "abrak-name" {
   type = string
-  default = "terraform-abrak-volume-2"
+  default = "terraform-add-security-group"
 }
 
 variable "region" {
   type = string
   default = "ir-thr-c2"
+}
+
+provider "arvan" {
+  api_key = var.ApiKey
 }
 
 resource "arvan_iaas_abrak" "abrak-1" {
@@ -38,25 +37,21 @@ resource "arvan_iaas_abrak" "abrak-1" {
   disk_size = 25
 }
 
-data "arvan_iaas_abrak" "get_abrak_id" {
+resource "arvan_iaas_security_group" "security-group-1" {
+  region = var.region
+
+  name = "security-group-1"
+  description = "a description"
+}
+
+resource "arvan_iaas_abrak_add_security_group" "abrak-security-group" {
+
   depends_on = [
-    arvan_iaas_abrak.abrak-1
+    arvan_iaas_abrak.abrak-1,
+    arvan_iaas_security_group.security-group-1
   ]
 
   region = var.region
-  name   = var.abrak-name
-}
-
-output "details-abrak-1" {
-  value = data.arvan_iaas_abrak.get_abrak_id
-}
-
-resource "arvan_iaas_network_attach" "attach-network-abrak" {
-  depends_on = [
-    arvan_iaas_abrak.abrak-1
-  ]
-
-  region = var.region
-  abrak_id = data.arvan_iaas_abrak.get_abrak_id.id
-  network_id = "2f42d4de-3039-49f8-a76b-f93d7a7627c8"
+  abrak_uuid = arvan_iaas_abrak.abrak-1.id
+  security_group_uuid = arvan_iaas_security_group.security-group-1.id
 }

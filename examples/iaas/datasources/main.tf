@@ -7,13 +7,19 @@ terraform {
   }
 }
 
+variable "ApiKey" {
+  type = string
+  default = "<put your ApiKey here>"
+  sensitive = true
+}
+
 variable "region" {
   type = string
   default = "ir-thr-c2"
 }
 
 provider "arvan" {
-  api_key = "<put your apikey here>"
+  api_key = var.ApiKey
 }
 
 data "arvan_iaas_options" "get-options" {
