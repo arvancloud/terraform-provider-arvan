@@ -38,6 +38,11 @@ func ResourceAbrakSnapshot() *schema.Resource {
 				Required:    true,
 				Description: "snapshot name of abrak",
 			},
+			"snapshot_description": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "snapshot description of abrak",
+			},
 		},
 	}
 }
@@ -57,7 +62,8 @@ func resourceAbrakSnapshotCreate(ctx context.Context, data *schema.ResourceData,
 	uuid := data.Get("abrak_uuid").(string)
 
 	snapshotName := data.Get("snapshot_name").(string)
-	err := c.Server.Actions.Snapshot(region, uuid, snapshotName)
+	snapshotDescription := data.Get("snapshot_description").(string)
+	err := c.Server.Actions.Snapshot(region, uuid, snapshotName, snapshotDescription)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,

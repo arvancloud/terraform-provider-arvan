@@ -133,18 +133,20 @@ func (s *ServerActions) ChangeDiskSize(region, id string, size int) (err error) 
 		return err
 	}
 
-	_, err = s.requester.DoRequest("POST", endpoint, bytes.NewBuffer(body))
+	_, err = s.requester.DoRequest("PUT", endpoint, bytes.NewBuffer(body))
 	return err
 }
 
 // Snapshot - create a snapshot from a server
-func (s *ServerActions) Snapshot(region, id, name string) (err error) {
-	endpoint := fmt.Sprintf("/%v/%v/regions/%v/servers/%v/snapshot", ECCEndPoint, Version, region, id)
+func (s *ServerActions) Snapshot(region, id, name, description string) (err error) {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/%v/snapshot", ECCEndPoint, Version, region, id)
 
 	var requestBody any = &struct {
-		Name string `json:"name"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
 	}{
-		Name: name,
+		Name:        name,
+		Description: description,
 	}
 
 	body, err := json.Marshal(requestBody)
