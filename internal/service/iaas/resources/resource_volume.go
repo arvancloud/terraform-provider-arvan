@@ -40,7 +40,38 @@ func ResourceVolume() *schema.Resource {
 			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "description of volume",
+			},
+			"status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "status of volume",
+			},
+			"created_at": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "created date of volume",
+			},
+			"volume_type_name": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "type of volume",
+			},
+			"snapshot_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "snapshot ID of volume",
+			},
+			"source_volume_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "source ID of volume",
+			},
+			"bootable": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "volume is bootable or not",
 			},
 		},
 	}
