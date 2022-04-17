@@ -19,14 +19,19 @@ provider "arvan" {
 
 variable "abrak-name" {
   type = string
-  default = "terraform-abrak-volume-2"
+  default = "terraform-abrak-1"
 }
 
+variable "abrak-new-flavor" {
+  type = string
+  default = "g1-3-1-0"
+}
 variable "region" {
   type = string
   default = "ir-thr-c2"
 }
 
+# Create dummy abrak
 resource "arvan_iaas_abrak" "abrak-1" {
   region = var.region
   flavor = "g1-1-1-0"
@@ -38,6 +43,7 @@ resource "arvan_iaas_abrak" "abrak-1" {
   disk_size = 25
 }
 
+# Retrieve abrak info
 data "arvan_iaas_abrak" "get_abrak_id" {
   depends_on = [
     arvan_iaas_abrak.abrak-1
@@ -47,39 +53,9 @@ data "arvan_iaas_abrak" "get_abrak_id" {
   name   = var.abrak-name
 }
 
-output "details-abrak-1" {
-  value = data.arvan_iaas_abrak.get_abrak_id
-}
-
-
-resource "arvan_iaas_subnet" "subnet-1" {
+# change flavor of abrak
+resource "arvan_iaas_abrak_rename" "iaas-abrak-1-change-flavor" {
   region = var.region
-  name = "subnet name"
-  subnet_ip = "192.168.0.0/24"
-  enable_gateway = true
-  gateway = "192.168.0.1"
-  dns_servers = [
-    "1.1.1.1",
-    "9.9.9.9"
-  ]
-  enable_dhcp = true
-  dhcp {
-    from = "192.168.0.13"
-    to = "192.168.0.20"
-  }
-}
-
-output "subnet-details" {
-  value = arvan_iaas_subnet.subnet-1
-}
-
-resource "arvan_iaas_network_attach" "attach-network-abrak" {
-  depends_on = [
-    arvan_iaas_abrak.abrak-1,
-    arvan_iaas_subnet.subnet-1
-  ]
-
-  region = var.region
+  flavor = var.abrak-new-flavor
   abrak_uuid = data.arvan_iaas_abrak.get_abrak_id.id
-  network_uuid = arvan_iaas_subnet.subnet-1.network_uuid
 }

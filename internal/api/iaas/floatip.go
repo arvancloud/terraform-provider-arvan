@@ -22,7 +22,7 @@ type FloatIPDetails struct {
 	Description       string         `json:"description"`
 	CreatedAt         string         `json:"created_at"`
 	UpdatedAt         string         `json:"updated_at"`
-	RevisionNumber    int            `json:"revision_number"`
+	RevisionNumber    any            `json:"revision_number"`
 	Server            *ServerDetails `json:"server"`
 	Tags              []TagDetails   `json:"tags"`
 }

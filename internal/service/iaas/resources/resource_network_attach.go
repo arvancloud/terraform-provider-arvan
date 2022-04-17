@@ -27,13 +27,13 @@ func ResourceNetworkAttach() *schema.Resource {
 				Description:  "Region code",
 				ValidateFunc: validation.StringInSlice(iaas.AvailableRegions, false),
 			},
-			"network_id": {
+			"network_uuid": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "UUID of network",
 				ValidateFunc: validation.IsUUID,
 			},
-			"abrak_id": {
+			"abrak_uuid": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "UUID of abrak",
@@ -66,11 +66,11 @@ func resourceNetworkAttachCreate(ctx context.Context, data *schema.ResourceData,
 		return errors
 	}
 
-	networkId := data.Get("network_id").(string)
+	networkId := data.Get("network_uuid").(string)
 
 	// networkAttach Options
 	networkAttachOpts := &iaas.NetworkAttachOpts{
-		ServerId: data.Get("abrak_id").(string),
+		ServerId: data.Get("abrak_uuid").(string),
 	}
 
 	if ip, ok := data.GetOk("ip"); ok {
@@ -104,7 +104,7 @@ func resourceNetworkAttachDelete(_ context.Context, data *schema.ResourceData, m
 
 	// networkDetach Options
 	networkDetachOpts := &iaas.NetworkDetachOpts{
-		ServerId: data.Get("abrak_id").(string),
+		ServerId: data.Get("abrak_uuid").(string),
 	}
 
 	err := c.Network.Detach(region, data.Id(), networkDetachOpts)

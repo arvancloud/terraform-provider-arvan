@@ -89,21 +89,10 @@ func (t *Tag) List(region string) (details []TagDetails, err error) {
 }
 
 // Create - create a tag
-func (t *Tag) Create(region string, opts *TagOpts) (details *TagDetails, err error) {
+func (t *Tag) Create(region string, opts *TagOpts) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/tags", ECCEndPoint, Version, region)
-
-	data, err := t.requester.Create(endpoint, opts, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	marshal, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(marshal, &details)
-	return details, err
+	_, err = t.requester.Create(endpoint, opts, nil)
+	return err
 }
 
 // Delete - delete a tag

@@ -124,40 +124,11 @@ func (v *Volume) Create(region string, opts *VolumeOpts) (details *VolumeDetails
 	return details, err
 }
 
-// Read - get details of a volume
-func (v *Volume) Read(region, id string) (details *VolumeDetails, err error) {
-	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/%v", ECCEndPoint, Version, region, id)
-
-	data, err := v.requester.Read(endpoint, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	marshal, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(marshal, &details)
-	return details, err
-}
-
 // Update - edit a volume
-func (v *Volume) Update(region, id string, opts *VolumeUpdateOpts) (details *VolumeDetails, err error) {
+func (v *Volume) Update(region, id string, opts *VolumeUpdateOpts) (err error) {
 	endpoint := fmt.Sprintf("/%v/%v/regions/%v/volumes/%v", ECCEndPoint, Version, region, id)
-
-	data, err := v.requester.Patch(endpoint, opts, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	marshal, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(marshal, &details)
-	return details, err
+	_, err = v.requester.Patch(endpoint, opts, nil)
+	return err
 }
 
 // Delete - delete a volume

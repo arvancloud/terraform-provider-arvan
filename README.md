@@ -23,7 +23,7 @@ terraform {
   required_providers {
     arvan = {
       source  = "arvancloud.com/terraform/arvan"
-      version = "0.5.0"
+      version = "0.5.0" # put the version here
     }
   }
 }
@@ -96,3 +96,6 @@ output "details-abrak-1" {
   value = data.arvan_iaas_abrak.get_abrak_id
 }
 ```
+
+### Examples
+Other examples are available [here](./examples)

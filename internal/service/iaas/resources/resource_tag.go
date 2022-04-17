@@ -54,12 +54,18 @@ func resourceTagCreate(ctx context.Context, data *schema.ResourceData, meta any)
 		TagName: data.Get("name").(string),
 	}
 
-	tag, err := c.Tag.Create(region, tagOpts)
+	err = c.Tag.Create(region, tagOpts)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	data.SetId(tag.ID.(string))
+	// looking for tag ID
+	tag, err := c.Tag.Find(region, tagOpts.TagName)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	data.SetId(fmt.Sprint(tag.ID))
 	return errors
 }
 
@@ -85,7 +91,7 @@ func resourceTagUpdate(ctx context.Context, data *schema.ResourceData, meta any)
 		if err != nil {
 			errors = append(errors, diag.Diagnostic{
 				Severity: diag.Error,
-				Summary:  fmt.Sprintf("can not delete FloatIP %v", data.Id()),
+				Summary:  fmt.Sprintf("can not delete tag %v", data.Id()),
 			})
 			return errors
 		}
@@ -115,7 +121,7 @@ func resourceTagDelete(ctx context.Context, data *schema.ResourceData, meta any)
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("can not delete FloatIP %v", data.Id()),
+			Summary:  fmt.Sprintf("can not delete tag %v", data.Id()),
 		})
 		return errors
 	}
