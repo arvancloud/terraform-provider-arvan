@@ -51,12 +51,35 @@ output "details-abrak-1" {
   value = data.arvan_iaas_abrak.get_abrak_id
 }
 
+
+resource "arvan_iaas_subnet" "subnet-1" {
+  region = var.region
+  name = "subnet name"
+  subnet_ip = "192.168.0.0/24"
+  enable_gateway = true
+  gateway = "192.168.0.1"
+  dns_servers = [
+    "1.1.1.1",
+    "9.9.9.9"
+  ]
+  enable_dhcp = true
+  dhcp {
+    from = "192.168.0.13"
+    to = "192.168.0.20"
+  }
+}
+
+output "subnet-details" {
+  value = arvan_iaas_subnet.subnet-1
+}
+
 resource "arvan_iaas_network_attach" "attach-network-abrak" {
   depends_on = [
-    arvan_iaas_abrak.abrak-1
+    arvan_iaas_abrak.abrak-1,
+    arvan_iaas_subnet.subnet-1
   ]
 
   region = var.region
-  abrak_id = data.arvan_iaas_abrak.get_abrak_id.id
-  network_id = "2f42d4de-3039-49f8-a76b-f93d7a7627c8"
+  abrak_uuid = data.arvan_iaas_abrak.get_abrak_id.id
+  network_uuid = arvan_iaas_subnet.subnet-1.network_uuid
 }

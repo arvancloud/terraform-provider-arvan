@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"strings"
 )
 
 func ResourceSubnet() *schema.Resource {
@@ -39,18 +40,25 @@ func ResourceSubnet() *schema.Resource {
 			},
 			"enable_gateway": {
 				Type:        schema.TypeBool,
-				Required:    true,
+				Optional:    true,
+				Default:     false,
 				Description: "enable gateway",
+			},
+			"enable_dhcp": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "enable dhcp",
 			},
 			"gateway": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				Description:  "gateway",
 				ValidateFunc: validation.IsIPv4Address,
 			},
 			"dhcp": {
 				Type:        schema.TypeSet,
-				Required:    true,
+				Optional:    true,
 				Description: "DHCP range(s)",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -71,13 +79,18 @@ func ResourceSubnet() *schema.Resource {
 			},
 			"dns_servers": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Description: "dns servers",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					Description:  "ip address of dns",
 					ValidateFunc: validation.IsIPv4Address,
 				},
+			},
+			"network_uuid": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "UUID of network",
 			},
 		},
 	}
@@ -97,37 +110,51 @@ func resourceSubnetCreate(ctx context.Context, data *schema.ResourceData, meta a
 
 	// subnetOpts Options
 	subnetOpts := &iaas.SubnetOpts{
-		Name:          data.Get("name").(string),
-		SubnetIP:      data.Get("subnet_ip").(string),
-		EnableGateway: data.Get("enable_gateway").(bool),
-		SubnetGateway: data.Get("gateway").(string),
+		Name:     data.Get("name").(string),
+		SubnetIP: data.Get("subnet_ip").(string),
+	}
+
+	if enableGateway, ok := data.GetOk("enable_gateway"); ok {
+		subnetOpts.EnableGateway = enableGateway.(bool)
+	}
+
+	if enableDhcp, ok := data.GetOk("enable_dhcp"); ok {
+		subnetOpts.EnableDhcp = enableDhcp.(bool)
+	}
+
+	if subnetGateway, ok := data.GetOk("gateway"); ok {
+		subnetOpts.SubnetGateway = subnetGateway.(string)
 	}
 
 	// parse dhcp
-	var dhcp string
-	dhcpSet := data.Get("dhcp").(*schema.Set)
-	for _, dhcpRange := range dhcpSet.List() {
-		ranges, ok := dhcpRange.(map[string]any)
-		if ok {
-			dhcp += fmt.Sprintf("%v,%v\n", ranges["from"].(string), ranges["to"].(string))
+	if dhcpSet, ok := data.GetOk("dhcp"); ok {
+		var dhcp string
+		for _, dhcpRange := range dhcpSet.(*schema.Set).List() {
+			ranges, ok := dhcpRange.(map[string]any)
+			if ok {
+				dhcp += fmt.Sprintf("%v,%v\n", ranges["from"].(string), ranges["to"].(string))
+			}
 		}
+		subnetOpts.Dhcp = strings.TrimSuffix(dhcp, "\n")
 	}
-	subnetOpts.Dhcp = dhcp
 
 	// parse dns servers
-	var dnsServers string
-	items := data.Get("dns_servers").([]any)
-	for _, item := range items {
-		dnsServers += item.(string) + "\n"
+	if items, ok := data.GetOk("dns_servers"); ok {
+		var dnsServers string
+		for _, item := range items.([]any) {
+			dnsServers += item.(string) + "\n"
+		}
+		subnetOpts.DnsServers = strings.TrimSuffix(dnsServers, "\n")
 	}
-	subnetOpts.DnsServers = dnsServers
 
 	response, err := c.Network.CreateSubnet(region, subnetOpts)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	data.SetId(fmt.Sprint(response.ID))
+	data.SetId(response.ID)
+	data.Set("network_uuid", response.NetworkId)
+	data.Set("gateway", response.GatewayIP)
 	return errors
 }
 
@@ -153,7 +180,8 @@ func resourceSubnetRead(_ context.Context, data *schema.ResourceData, meta any) 
 	}
 
 	data.SetId(subnet.ID)
-
+	data.Set("network_uuid", subnet.NetworkId)
+	data.Set("gateway", subnet.GatewayIP)
 	// TODO: we have to set other details
 
 	return nil
@@ -171,36 +199,50 @@ func resourceSubnetUpdate(_ context.Context, data *schema.ResourceData, meta any
 		return errors
 	}
 
-	if data.HasChanges("name", "subnet_ip", "enable_gateway", "gateway", "dhcp", "dns_servers") {
+	if data.HasChanges("name", "subnet_ip", "enable_gateway", "gateway", "enable_dhcp", "dhcp", "dns_servers") {
 
 		// subnetOpts Options
 		subnetOpts := &iaas.SubnetOpts{
-			Name:          data.Get("name").(string),
-			SubnetIP:      data.Get("subnet_ip").(string),
-			EnableGateway: data.Get("enable_gateway").(bool),
-			SubnetGateway: data.Get("gateway").(string),
+			Name:      data.Get("name").(string),
+			SubnetIP:  data.Get("subnet_ip").(string),
+			SubnetId:  data.Id(),
+			NetworkId: data.Get("network_uuid").(string),
+		}
+
+		if enableGateway, ok := data.GetOk("enable_gateway"); ok {
+			subnetOpts.EnableGateway = enableGateway.(bool)
+		}
+
+		if enableDhcp, ok := data.GetOk("enable_dhcp"); ok {
+			subnetOpts.EnableDhcp = enableDhcp.(bool)
+		}
+
+		if subnetGateway, ok := data.GetOk("gateway"); ok {
+			subnetOpts.SubnetGateway = subnetGateway.(string)
 		}
 
 		// parse dhcp
-		var dhcp string
-		dhcpSet := data.Get("dhcp").(*schema.Set)
-		for _, dhcpRange := range dhcpSet.List() {
-			ranges, ok := dhcpRange.(map[string]any)
-			if ok {
-				dhcp += fmt.Sprintf("%v,%v\n", ranges["from"].(string), ranges["to"].(string))
+		if dhcpSet, ok := data.GetOk("dhcp"); ok {
+			var dhcp string
+			for _, dhcpRange := range dhcpSet.(*schema.Set).List() {
+				ranges, ok := dhcpRange.(map[string]any)
+				if ok {
+					dhcp += fmt.Sprintf("%v,%v\n", ranges["from"].(string), ranges["to"].(string))
+				}
 			}
+			subnetOpts.Dhcp = strings.TrimSuffix(dhcp, "\n")
 		}
-		subnetOpts.Dhcp = dhcp
 
 		// parse dns servers
-		var dnsServers string
-		items := data.Get("dns_servers").([]any)
-		for _, item := range items {
-			dnsServers += item.(string) + "\n"
+		if items, ok := data.GetOk("dns_servers"); ok {
+			var dnsServers string
+			for _, item := range items.([]any) {
+				dnsServers += item.(string) + "\n"
+			}
+			subnetOpts.DnsServers = strings.TrimSuffix(dnsServers, "\n")
 		}
-		subnetOpts.DnsServers = dnsServers
 
-		subnet, err := c.Network.UpdateSubnet(region, data.Id(), subnetOpts)
+		err := c.Network.UpdateSubnet(region, subnetOpts)
 		if err != nil {
 			errors = append(errors, diag.Diagnostic{
 				Severity: diag.Error,
@@ -209,7 +251,7 @@ func resourceSubnetUpdate(_ context.Context, data *schema.ResourceData, meta any
 			return errors
 		}
 
-		data.SetId(subnet.ID)
+		data.SetId(data.Id())
 	}
 
 	return errors
@@ -226,6 +268,8 @@ func resourceSubnetDelete(_ context.Context, data *schema.ResourceData, meta any
 		})
 		return errors
 	}
+
+	// TODO: do we need to detach the attached servers ?
 
 	err := c.Network.DeleteSubnet(region, data.Id())
 	if err != nil {

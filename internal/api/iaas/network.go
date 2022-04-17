@@ -12,8 +12,11 @@ type SubnetOpts struct {
 	SubnetIP      string `json:"subnet_ip"`
 	EnableGateway bool   `json:"enable_gateway"`
 	SubnetGateway string `json:"subnet_gateway"`
+	EnableDhcp    bool   `json:"enable_dhcp"`
 	Dhcp          string `json:"dhcp"`
 	DnsServers    string `json:"dns_servers"`
+	SubnetId      string `json:"subnet_id"`
+	NetworkId     string `json:"network_id"`
 }
 
 type NetworkAttachOpts struct {
@@ -232,21 +235,10 @@ func (n *Network) CreateSubnet(region string, opts *SubnetOpts) (details *Subnet
 }
 
 // UpdateSubnet - edit a subnet
-func (n *Network) UpdateSubnet(region, id string, opts *SubnetOpts) (details *SubnetDetails, err error) {
-	endpoint := fmt.Sprintf("/%v/%v/regions/%v/subnets/%v", ECCEndPoint, Version, region, id)
-
-	data, err := n.requester.Patch(endpoint, opts, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	marshal, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(marshal, &details)
-	return details, err
+func (n *Network) UpdateSubnet(region string, opts *SubnetOpts) (err error) {
+	endpoint := fmt.Sprintf("/%v/%v/regions/%v/subnets", ECCEndPoint, Version, region)
+	_, err = n.requester.Patch(endpoint, opts, nil)
+	return err
 }
 
 // DeleteSubnet - delete a subnet
