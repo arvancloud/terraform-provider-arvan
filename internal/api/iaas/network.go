@@ -98,7 +98,7 @@ type SubnetDetails struct {
 	IPv6AddressMode string          `json:"ipv6_address_mode"`
 	IPv6RaMode      string          `json:"ipv6_ra_mode"`
 	SubnetPoolId    string          `json:"subnetpool_id"`
-	ServiceType     string          `json:"service_type"`
+	ServiceTypes    string          `json:"service_types"`
 	RevisionNumber  any             `json:"revision_number"`
 	Tags            []TagDetails    `json:"tags"`
 	Servers         []NetworkServer `json:"servers"`
