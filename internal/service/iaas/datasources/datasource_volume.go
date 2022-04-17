@@ -63,7 +63,7 @@ func DatasourceVolume() *schema.Resource {
 			"bootable": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "volume is bootable",
+				Description: "volume is bootable or not",
 			},
 		},
 	}
