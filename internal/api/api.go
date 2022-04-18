@@ -88,7 +88,7 @@ func (r *Requester) DoRequestWithQuery(method, endpoint string, data io.Reader,
 		return nil, err
 	}
 
-	if !(res.StatusCode <= 300) {
+	if !(res.StatusCode <= http.StatusBadRequest) {
 		return nil, fmt.Errorf("status: %d, body: %s", res.StatusCode, string(body))
 	}
 
@@ -117,7 +117,7 @@ func (r *Requester) Put(endpoint string, opts any, queries map[string]string) (a
 
 // Delete - make DELETE request
 func (r *Requester) Delete(endpoint string, queries map[string]string) (err error) {
-	if queries != nil {
+	if queries == nil {
 		_, err = r.DoRequest("DELETE", endpoint, nil)
 	} else {
 		_, err = r.DoRequestWithQuery("DELETE", endpoint, nil, queries)
