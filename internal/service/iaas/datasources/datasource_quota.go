@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api/client"
 	"github.com/arvancloud/terraform-provider-arvan/internal/api/iaas"
-	"github.com/arvancloud/terraform-provider-arvan/internal/service/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -136,7 +136,7 @@ func datasourceQuotaRead(ctx context.Context, data *schema.ResourceData, meta an
 		return errors
 	}
 
-	data.SetId(helper.GenUUID())
+	data.SetId(resource.UniqueId())
 	data.Set("max_image_meta", quota.MaxImageMeta)
 	data.Set("max_personality", quota.MaxPersonality)
 	data.Set("max_security_group_rules", quota.MaxSecurityGroupRules)

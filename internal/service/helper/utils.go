@@ -2,7 +2,6 @@ package helper
 
 import (
 	"github.com/arvancloud/terraform-provider-arvan/internal/api/iaas"
-	"github.com/hashicorp/go-uuid"
 	"strconv"
 )
 
@@ -28,9 +27,4 @@ func FindRule(rules []iaas.RuleDetails, rule iaas.SecurityGroupRuleOpts) *iaas.R
 		}
 	}
 	return nil
-}
-
-func GenUUID() (u string) {
-	u, _ = uuid.GenerateUUID()
-	return u
 }
