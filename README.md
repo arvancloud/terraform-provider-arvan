@@ -23,7 +23,7 @@ terraform {
   required_providers {
     arvan = {
       source  = "arvancloud.com/terraform/arvan"
-      version = "0.5.0" # put the version here
+      version = "0.6.0" # put the version here
     }
   }
 }
@@ -46,7 +46,7 @@ terraform {
   required_providers {
     arvan = {
       source  = "arvancloud.com/terraform/arvan"
-      version = "0.5.0"
+      version = "0.6.0"
     }
   }
 }
