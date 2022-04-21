@@ -7,6 +7,29 @@ import (
 	"github.com/arvancloud/terraform-provider-arvan/internal/api"
 )
 
+const (
+	ServerActiveStatus           = "active"
+	ServerBuildStatus            = "build"
+	ServerDeletedStatus          = "deleted"
+	ServerErrorStatus            = "error"
+	ServerHardRebootStatus       = "hard_reboot"
+	ServerMigratingStatus        = "migrating"
+	ServerPasswordStatus         = "password"
+	ServerPausedStatus           = "paused"
+	ServerRebootStatus           = "reboot"
+	ServerReBuildStatus          = "rebuild"
+	ServerRescueStatus           = "rescue"
+	ServerResizeStatus           = "resize"
+	ServerRevertResizeStatus     = "revert_resize"
+	ServerShelvedStatus          = "shelved"
+	ServerShelvedOffloadedStatus = "shelved_offloaded"
+	ServerShutoffStatus          = "shutoff"
+	ServerSoftDeletedStatus      = "soft_deleted"
+	ServerSuspendedStatus        = "suspended"
+	ServerUnknownStatus          = "unknown"
+	ServerVerifyResizeStatus     = "verify_resize"
+)
+
 type ServerSecurityGroupOpts struct {
 	Name string `json:"name"`
 }
@@ -60,20 +83,20 @@ type ServerSecurityGroup struct {
 }
 
 type ServerDetails struct {
-	ID             string                      `json:"id"`
-	Name           string                      `json:"name"`
-	Flavor         *ServerFlavor               `json:"flavor"`
-	Status         string                      `json:"status"`
-	Image          *ServerImage                `json:"image"`
-	Created        string                      `json:"created"`
-	Password       string                      `json:"password"`
-	TaskState      *string                     `json:"task_state"`
-	KeyName        string                      `json:"key_name"`
-	ArNext         string                      `json:"ar_next"`
-	SecurityGroups []ServerSecurityGroup       `json:"security_groups"`
-	Addresses      map[string][]*ServerAddress `json:"addresses"`
-	Tags           []TagDetails                `json:"tags"`
-	HAEnabled      bool                        `json:"ha_enabled"`
+	ID             string                     `json:"id"`
+	Name           string                     `json:"name"`
+	Flavor         *ServerFlavor              `json:"flavor"`
+	Status         string                     `json:"status"`
+	Image          *ServerImage               `json:"image"`
+	Created        string                     `json:"created"`
+	Password       string                     `json:"password"`
+	TaskState      *string                    `json:"task_state"`
+	KeyName        string                     `json:"key_name"`
+	ArNext         string                     `json:"ar_next"`
+	SecurityGroups []ServerSecurityGroup      `json:"security_groups"`
+	Addresses      map[string][]ServerAddress `json:"addresses"`
+	Tags           []TagDetails               `json:"tags"`
+	HAEnabled      bool                       `json:"ha_enabled"`
 }
 
 type ServerAddress struct {

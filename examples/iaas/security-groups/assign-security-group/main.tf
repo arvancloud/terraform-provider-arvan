@@ -2,7 +2,7 @@ terraform {
   required_providers {
     arvan = {
       source  = "arvancloud.com/terraform/arvan"
-      version = "0.5.0"
+      version = "0.6.0"
     }
   }
 }
@@ -14,7 +14,7 @@ variable "ApiKey" {
 
 variable "abrak-name" {
   type = string
-  default = "terraform-add-security-group"
+  default = "terraform-assign-security-group"
 }
 
 variable "region" {
@@ -44,7 +44,7 @@ resource "arvan_iaas_security_group" "security-group-1" {
   description = "a description"
 }
 
-resource "arvan_iaas_abrak_add_security_group" "abrak-security-group" {
+resource "arvan_iaas_abrak_assign_security_group" "abrak-security-group" {
 
   depends_on = [
     arvan_iaas_abrak.abrak-1,

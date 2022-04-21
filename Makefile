@@ -1,4 +1,4 @@
-VERSION=0.5.1
+VERSION=0.6.0
 
 HOSTNAME=arvancloud.com
 NAMESPACE=terraform
@@ -17,6 +17,7 @@ default: install
 
 build:
 	mkdir -p $(BINARY_PATH)
+	go mod tidy
 	go build -o $(BINARY_PATH)/$(BINARY)
 
 release:

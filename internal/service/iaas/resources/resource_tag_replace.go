@@ -6,6 +6,7 @@ import (
 	"github.com/arvancloud/terraform-provider-arvan/internal/api/iaas"
 	"github.com/arvancloud/terraform-provider-arvan/internal/service/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -93,7 +94,7 @@ func resourceTagReplaceBatchCreate(ctx context.Context, data *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	data.SetId(helper.GenUUID())
+	data.SetId(resource.UniqueId())
 	return errors
 }
 

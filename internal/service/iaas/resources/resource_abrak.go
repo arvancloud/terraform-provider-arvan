@@ -7,8 +7,18 @@ import (
 	"github.com/arvancloud/terraform-provider-arvan/internal/api/iaas"
 	"github.com/arvancloud/terraform-provider-arvan/internal/service/helper"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"strings"
+	"time"
+)
+
+const (
+	AbrakDelay         = 5 * time.Second
+	AbrakMinTimeout    = 3 * time.Second
+	AbrakCreateTimeout = 10 * time.Minute
+	AbrakDeleteTimeout = 10 * time.Minute
 )
 
 func ResourceAbrak() *schema.Resource {
@@ -19,6 +29,10 @@ func ResourceAbrak() *schema.Resource {
 		DeleteContext: resourceAbrakDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(AbrakCreateTimeout),
+			Delete: schema.DefaultTimeout(AbrakDeleteTimeout),
 		},
 		Schema: map[string]*schema.Schema{
 			"region": {
@@ -35,7 +49,6 @@ func ResourceAbrak() *schema.Resource {
 			"networks": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Computed:    true,
 				Description: "Network(s) of abrak",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -74,11 +87,18 @@ func ResourceAbrak() *schema.Resource {
 			"security_groups": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 				Description: "array of security group names",
+			},
+			"addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Description: "array of abrak addresses",
 			},
 			"key_name": {
 				Type:        schema.TypeString,
@@ -89,7 +109,6 @@ func ResourceAbrak() *schema.Resource {
 			"ssh_key": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Computed:    true,
 				Description: "Can use ssh key",
 			},
 			"number": {
@@ -101,7 +120,6 @@ func ResourceAbrak() *schema.Resource {
 			"create_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				Description: "type of abrak creation, " +
 					"a flag which shows client sends arguments or we should read from image",
 			},
@@ -271,8 +289,15 @@ func resourceAbrakCreate(ctx context.Context, data *schema.ResourceData, meta an
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
 	data.SetId(response.ID)
-	return errors
+
+	_, err = AbrakWaitFroAvailable(ctx, data.Timeout(schema.TimeoutCreate), region, response.ID, c)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return resourceAbrakRead(ctx, data, meta)
 }
 
 func resourceAbrakRead(_ context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
@@ -291,18 +316,38 @@ func resourceAbrakRead(_ context.Context, data *schema.ResourceData, meta any) (
 	if err != nil {
 		errors = append(errors, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  fmt.Sprintf("can not retrive server %v", data.Id()),
+			Summary:  fmt.Sprintf("can not retrive abrak %v", data.Id()),
 		})
 		return errors
 	}
 
-	// TODO: we have to store required items
-
-	data.SetId(abrak.ID)
+	data.Set("flavor", abrak.Flavor.ID)
+	data.Set("status", abrak.Status)
+	data.Set("created_at", abrak.Created)
+	data.Set("addresses", flattenAbrakAddresses(abrak.Addresses))
+	data.Set("tags", flattenAbrakTags(abrak.Tags))
+	data.Set("ha_enabled", abrak.HAEnabled)
+	data.Set("key_name", abrak.KeyName)
 	return nil
 }
 
-func resourceAbrakDelete(_ context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
+func flattenAbrakTags(tags []iaas.TagDetails) (abrakTags []string) {
+	for _, tag := range tags {
+		abrakTags = append(abrakTags, tag.Name)
+	}
+	return abrakTags
+}
+
+func flattenAbrakAddresses(addresses map[string][]iaas.ServerAddress) (abrakAddresses []string) {
+	for _, network := range addresses {
+		for _, address := range network {
+			abrakAddresses = append(abrakAddresses, address.Addr)
+		}
+	}
+	return abrakAddresses
+}
+
+func resourceAbrakDelete(ctx context.Context, data *schema.ResourceData, meta any) (errors diag.Diagnostics) {
 	c := meta.(*client.Client).IaaS
 	region, ok := data.Get("region").(string)
 	if !ok {
@@ -320,5 +365,60 @@ func resourceAbrakDelete(_ context.Context, data *schema.ResourceData, meta any)
 		})
 		return errors
 	}
+
+	err = abrakWaitFroDestroy(ctx, data.Timeout(schema.TimeoutDelete), region, data.Id(), c)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
+}
+
+func abrakStateRefreshFunc(i *iaas.IaaS, region, id string) resource.StateRefreshFunc {
+	return func() (server any, status string, err error) {
+		emptyResponse := &iaas.ServerDetails{}
+
+		server, err = i.Server.Read(region, id)
+		if err != nil {
+			return emptyResponse, iaas.ServerDeletedStatus, nil
+		}
+
+		return server, strings.ToLower(server.(*iaas.ServerDetails).Status), err
+	}
+}
+
+func AbrakWaitFroAvailable(ctx context.Context, timeout time.Duration, region, id string, i *iaas.IaaS) (abrak *iaas.ServerDetails, err error) {
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{iaas.ServerBuildStatus, iaas.ServerReBuildStatus, iaas.ServerMigratingStatus},
+		Target:     []string{iaas.ServerActiveStatus},
+		Refresh:    abrakStateRefreshFunc(i, region, id),
+		Timeout:    timeout,
+		Delay:      AbrakDelay,
+		MinTimeout: AbrakMinTimeout,
+	}
+
+	info, err := stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error waiting for Abrak (%s) to be ready: %v", id, err)
+	}
+
+	return info.(*iaas.ServerDetails), nil
+}
+
+func abrakWaitFroDestroy(ctx context.Context, timeout time.Duration, region, id string, i *iaas.IaaS) (err error) {
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{iaas.ServerActiveStatus},
+		Target:     []string{iaas.ServerDeletedStatus},
+		Refresh:    abrakStateRefreshFunc(i, region, id),
+		Timeout:    timeout,
+		Delay:      AbrakDelay,
+		MinTimeout: AbrakMinTimeout,
+	}
+
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return fmt.Errorf("error waiting for delete Abrak (%s) to be ready: %v", id, err)
+	}
+
 	return nil
 }
