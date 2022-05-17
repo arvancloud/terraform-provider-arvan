@@ -24,12 +24,6 @@ func NewClient(cfg *Config) (*Client, error) {
 		api.NewRequester(cfg.ApiKey),
 	)
 
-	// check user is authenticated or not
-	err = ctx.Value(api.RequesterContext).(*api.Requester).CheckAuthenticate()
-	if err != nil {
-		return nil, err
-	}
-
 	return &Client{
 		IaaS: iaas.NewIaaS(
 			iaas.NewServer(ctx),

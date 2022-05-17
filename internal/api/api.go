@@ -12,7 +12,6 @@ import (
 
 const (
 	BasePath         = "https://napi.arvancloud.com"
-	AuthEndpoint     = "/resid/v1/wallets/me"
 	DefaultTimeout   = 1 * time.Minute
 	RequesterContext = "requesterContext"
 )
@@ -40,15 +39,6 @@ func NewRequester(apiKey string) *Requester {
 		},
 		ApiKey: apiKey,
 	}
-}
-
-// CheckAuthenticate - to check authenticate
-func (r *Requester) CheckAuthenticate() (err error) {
-	_, err = r.DoRequest("GET", AuthEndpoint, nil)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // DoRequest - make a request without queries
