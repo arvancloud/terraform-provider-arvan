@@ -4,17 +4,6 @@
 
 # Terraform Provider for ArvanCloud
 
-
-### How to build
-```bash
-# clone it
-$ git clone github.com/arvancloud/terraform-provider-arvan
-
-# compile and install it
-make install
-```
-
-
 ### How to use
 1. Give an API Key from [ArvanCloud Dashboard](https://panel.arvancloud.com/profile/api-keys)
 2. Create a `main.tf` file and put the following content into (boilerplate):
@@ -22,8 +11,8 @@ make install
 terraform {
   required_providers {
     arvan = {
-      source  = "arvancloud.com/terraform/arvan"
-      version = "0.6.0" # put the version here
+      source  = "arvancloud/arvan"
+      version = "0.6.1" # put the version here
     }
   }
 }
@@ -45,8 +34,8 @@ Put the following content into a `main.tf` file:
 terraform {
   required_providers {
     arvan = {
-      source  = "arvancloud.com/terraform/arvan"
-      version = "0.6.0"
+      source  = "arvancloud/arvan"
+      version = "0.6.1"
     }
   }
 }
@@ -97,5 +86,21 @@ output "details-abrak-1" {
 }
 ```
 
-### Examples
+then apply the following command to use your `APIKEY` as variable:
+```bash
+$ terraform init
+$ TF_VAR_ApiKey="<YOUR API KEY>" terraform apply
+```
+
+### More Examples
 Other examples are available [here](./examples)
+
+### How to build
+```bash
+# clone it
+$ git clone github.com/arvancloud/terraform-provider-arvan
+
+# compile and install it
+$ make install
+```
+**Note:** use `arvancloud.com/terraform/arvan` as source in your `main.tf`.

@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     arvan = {
-      source  = "arvancloud.com/terraform/arvan"
-      version = "0.6.0"
+      source  = "arvancloud/arvan"
+      version = "0.6.1"
     }
   }
 }
