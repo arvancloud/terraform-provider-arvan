@@ -5,7 +5,7 @@
 # Terraform Provider for ArvanCloud
 
 ### How to use
-1. Give an API Key from [ArvanCloud Dashboard](https://panel.arvancloud.com/profile/api-keys)
+1. Get an API Key from [ArvanCloud Dashboard](https://panel.arvancloud.com/profile/api-keys)
 2. Create a `main.tf` file and put the following content into (boilerplate):
 ```tf
 terraform {
