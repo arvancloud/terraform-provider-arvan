@@ -3,18 +3,20 @@ package iaas
 const (
 	ECCEndPoint    = "/ecc/"
 	Version        = "v1"
+	SiminRegion    = "ir-thr-c1"
 	ForoghRegion   = "ir-thr-c2"
 	ShahriarRegion = "ir-tbz-dc1"
 	HermanRegion   = "nl-ams-su1"
-	AsiaTechRegion = "ir-thr-at1"
+	BamdadRegion   = "ir-thr-w1"
 )
 
 var (
 	AvailableRegions = []string{
+		SiminRegion,
 		ForoghRegion,
 		ShahriarRegion,
 		HermanRegion,
-		AsiaTechRegion,
+		BamdadRegion,
 	}
 )
 
