@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	BasePath         = "https://napi.arvancloud.com"
+	BasePath         = "https://napi.arvancloud.ir"
 	DefaultTimeout   = 1 * time.Minute
 	RequesterContext = "requesterContext"
 )
