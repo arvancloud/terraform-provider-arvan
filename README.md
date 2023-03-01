@@ -5,8 +5,10 @@
 # Terraform Provider for ArvanCloud
 
 ### How to use
+
 1. Get an API Key from [ArvanCloud Dashboard](https://panel.arvancloud.ir/profile/api-keys)
 2. Create a `main.tf` file and put the following content into (boilerplate):
+
 ```tf
 terraform {
   required_providers {
@@ -29,7 +31,9 @@ provider "arvan" {
 ```
 
 ### Create an Abrak
+
 Put the following content into a `main.tf` file:
+
 ```tf
 terraform {
   required_providers {
@@ -88,15 +92,18 @@ output "details-abrak-1" {
 
 then apply the following command to use your `APIKEY` as variable:
 Ensure to prepend the following phrase: "Apikey YOUR API KEY"
+
 ```bash
-$ terraform init
-$ TF_VAR_ApiKey="<YOUR API KEY>" terraform apply
+terraform init
+TF_VAR_ApiKey="<YOUR API KEY>" terraform apply
 ```
 
 ### More Examples
+
 Other examples are available [here](./examples)
 
 ### How to build
+
 ```bash
 # clone it
 $ git clone github.com/arvancloud/terraform-provider-arvan
@@ -104,4 +111,5 @@ $ git clone github.com/arvancloud/terraform-provider-arvan
 # compile and install it
 $ make install
 ```
+
 **Note:** use `arvancloud.com/terraform/arvan` as source in your `main.tf`.
