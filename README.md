@@ -87,6 +87,7 @@ output "details-abrak-1" {
 ```
 
 then apply the following command to use your `APIKEY` as variable:
+Ensure to prepend the following phrase: "Apikey YOUR API KEY"
 ```bash
 $ terraform init
 $ TF_VAR_ApiKey="<YOUR API KEY>" terraform apply
