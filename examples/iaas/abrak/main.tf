@@ -9,7 +9,7 @@ terraform {
 
 variable "ApiKey" {
   type = string
-  default = "Apikey <put-your-api-key>"
+  default = "Apikey <put your ApiKey here>"
   sensitive = true
 }
 
