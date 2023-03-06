@@ -21,7 +21,7 @@ terraform {
 
 variable "ApiKey" {
   type = string
-  default = "<Your API Key>"
+  default = "ApiKey <Your API Key>"
   sensitive = true
 }
 
@@ -46,7 +46,7 @@ terraform {
 
 variable "ApiKey" {
   type = string
-  default = "<Your API Key>"
+  default = "ApiKey <Your API Key>"
   sensitive = true
 }
 
@@ -95,7 +95,7 @@ Ensure to prepend the following phrase: "Apikey YOUR API KEY"
 
 ```bash
 terraform init
-TF_VAR_ApiKey="<YOUR API KEY>" terraform apply
+TF_VAR_ApiKey="ApiKey <YOUR API KEY>" terraform apply
 ```
 
 ### More Examples
